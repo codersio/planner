@@ -13,9 +13,14 @@ use App\Http\Controllers\RolsAndPermission;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\TimesheetController;
 use App\Http\Controllers\DailyStatusController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DesignatonController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\EmpolyeeSetupController;
 use App\Http\Controllers\HolidayWorkController;
 use App\Http\Controllers\LeaveManagementController;
 use App\Http\Controllers\NotificationAllController;
+use App\Http\Controllers\PaySlipController;
 use Flasher\Prime\Test\Constraint\NotificationCount;
 
 // Route::get('/', function () {
@@ -183,3 +188,9 @@ Route::get('/assign-employee', [ReportController::class, 'AssignEmployee']);
 Route::get('/assign-employeeproject', [ProjectController::class, 'proassignemployess']);
 Route::post('/approvetime/{id}', [EmployeeController::class, 'ApproveStatuschange']);
 Route::post('/rejectapprovetime/{id}', [EmployeeController::class, 'RejectStatuschange']);
+// Route::get('/employee-department', [EmployeeController::class, 'employeesetip']);
+Route::resource('branches', EmpolyeeSetupController::class);
+Route::resource('departments', DepartmentController::class);
+Route::resource('designations', DesignatonController::class);
+Route::resource('payslips', PaySlipController::class);
+Route::resource('documents', DocumentController::class);

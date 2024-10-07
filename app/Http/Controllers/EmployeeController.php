@@ -471,4 +471,10 @@ class EmployeeController extends Controller
 
 
     public function EmployeeAssignallocate() {}
+
+    public function employeesetip()
+    {
+
+        return Inertia::render('employee/employeesetup');
+    }
 }
