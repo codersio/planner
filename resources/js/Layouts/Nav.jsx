@@ -25,8 +25,8 @@ const Nav = ({ user_type }) => {
     }, [user_type]);
 
     const menuitems = [
-        'Submenu 1',
-        'Submenu 2',
+        {name:'Submenu 1',link:""},
+        {name:'Submenu 2',link:""},
     ]
 
     return (

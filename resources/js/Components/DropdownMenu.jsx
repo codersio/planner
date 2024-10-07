@@ -27,9 +27,9 @@ export default function DropdownMenu({ icon, name, items }) {
         {
           items && items.map((item, index) => (
             <li key={index}>
-              <Link className='flex items-center text-sm text-gray-600 gap-x-2'>
+              <Link href={item.link} className='flex items-center text-sm text-gray-600 gap-x-2'>
                 <RxDotFilled size={14} />
-                <span>{item}</span>
+                <span>{item.name}</span>
               </Link>
             </li>
           ))
