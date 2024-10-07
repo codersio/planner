@@ -10,9 +10,11 @@ import { MdHolidayVillage } from "react-icons/md";
 import { FaHandPaper } from "react-icons/fa";
 import { LuLogOut } from "react-icons/lu";
 import { FaHome } from "react-icons/fa";
+import DropdownMenu from '@/Components/DropdownMenu';
 const Nav = ({ user_type }) => {
     const [permissions, setPermissions] = useState([]);
     const [toggle,SetToggle]=useState(true)
+    const [dropdown, setDropdown] = useState(false)
     const { url, component } = usePage()
     useEffect(() => {
         if (Array.isArray(user_type)) {
@@ -22,7 +24,10 @@ const Nav = ({ user_type }) => {
         }
     }, [user_type]);
 
-
+    const menuitems = [
+        'Submenu 1',
+        'Submenu 2',
+    ]
 
     return (
         <nav className='grid p-5 place-items-center '>
@@ -42,7 +47,8 @@ r
              <img src="/SCS-01-removebg-preview.png" alt="Description" className="w-[85%]" />
 
                 </div>
-                <li className={url === '/dashboard' ? 'active bg-[#0A1B3F] p-2    text-[0.9rem] text-white' : ' p-2  text-black text-[0.9rem]'}>
+                <DropdownMenu icon={<FaHome/>} name={'Dashboard'} items={menuitems}/>
+                <li className={url === '/dashboard' ? 'active bg-[#0A1B3F] p-2 text-[0.9rem] text-white' : ' p-2  text-black text-[0.9rem]'}>
                             <Link href='/dashboard' className='flex space-x-2'> <span className='grid place-items-center' > <FaHome/> </span> <span>Dashboard</span></Link>
                         </li>
              {
