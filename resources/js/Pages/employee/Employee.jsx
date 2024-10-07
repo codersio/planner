@@ -85,13 +85,15 @@ const Employee = ({ user, employee, user_type, notif }) => {
                 <table className="table w-full p-4 border">
                     <thead className='border bg-[#0A1B3F] text-white'>
                         <tr>
+                            <th className='p-3 text-left border'>Employee ID</th>
                             <th className='p-3 text-left border'>Name</th>
                             <th className='p-3 text-left border'>Email</th>
-                            <th className='p-3 text-left border'>Roles</th>
+                            <th className='p-3 text-left border'>Branch</th>
+                            <th className='p-3 text-left border'>Department</th>
                             <th className='p-3 text-left border'>Phone</th>
-                            <th className='p-3 text-left border'>Holiday work assign</th>
+                            {/* <th className='p-3 text-left border'>Holiday work assign</th> */}
                             <th className='p-3 text-left border'>Action</th>
-                            <th className='p-3 text-left border'>Unlock Timesheet</th>
+                            {/* <th className='p-3 text-left border'>Unlock Timesheet</th> */}
 
                         </tr>
                     </thead>
@@ -99,23 +101,38 @@ const Employee = ({ user, employee, user_type, notif }) => {
                         {currentEmployees.length > 0 ? (
                             currentEmployees.map(emp => (
                                 <tr key={emp.id}>
+                                      <td className='p-3 border'>
+                                        {emp.employees.map(empDetail => (
+                                            <div key={empDetail.id}>{empDetail.employee_id}</div>
+                                        ))}
+                                    </td>
                                     <td className='p-3 border'>{emp.name}</td>
                                     <td className='p-3 border'>{emp.email}</td>
-                                    <td className='p-3 border'>
+                                    {/* <td className='p-3 border'>
                                         {emp.roles.map(role => (
-                                            <div key={role.id}>{role.name}</div>
+                                            <div key={role.id}>{role.branch}</div>
+                                        ))}
+                                    </td> */}
+                                    <td className='p-3 border'>
+                                        {emp.employees.map(empDetail => (
+                                            <div key={empDetail.id}>{empDetail.branch_id}</div>
+                                        ))}
+                                    </td>
+                                     <td className='p-3 border'>
+                                        {emp.employees.map(empDetail => (
+                                            <div key={empDetail.id}>{empDetail.department_id}</div>
                                         ))}
                                     </td>
                                     <td className='p-3 border'>
                                         {emp.employees.map(empDetail => (
-                                            <div key={empDetail.id}>{empDetail.phone}</div>
+                                            <div key={empDetail.id}>{empDetail.designation_id}</div>
                                         ))}
                                     </td>
-                                     <td className='grid border border-b-0 place-items-center'>
+                                     {/* <td className='grid border border-b-0 place-items-center'>
                                         <Link href={`holiday-assign/${emp.id}`}>
                                           <MdOutlineAssignmentLate className='text-[1.5rem] text-green-600'/>
                                         </Link>
-                                    </td>
+                                    </td> */}
                                     <td className='border'>
                                         <div className='flex justify-center space-x-3'>
                                             <Link className='text-white text-[1.1rem] bg-[#0C7785] p-1 rounded-md' href={`employees-edit/${emp.id}`}>
@@ -127,11 +144,11 @@ const Employee = ({ user, employee, user_type, notif }) => {
                                         </div>
                                     </td>
 
-                                    <td className='grid border border-b-0 place-items-center'>
+                                    {/* <td className='grid border border-b-0 place-items-center'>
                                         <Link href={`timesheetemp-employee/${emp.id}`}>
                                             <MdLockClock className='text-[2rem] text-red-700' />
                                         </Link>
-                                    </td>
+                                    </td> */}
 
                                 </tr>
                             ))

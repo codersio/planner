@@ -49,6 +49,25 @@ class EmployeeController extends Controller
         $notif = Auth::user()->notifications;
         return Inertia::render('employee/create', compact('user', 'user_type', 'roles', 'notif'));
     }
+    protected function generateEmployeeId()
+    {
+        // Retrieve the latest employee based on the ID
+        $latestEmployee = Employee::orderBy('id', 'desc')->first();
+
+        if ($latestEmployee) {
+            // Extract the numeric part of the latest employee ID (e.g., from #EMP0000006, extract 6)
+            $lastEmployeeNumber = (int) filter_var($latestEmployee->employee_id, FILTER_SANITIZE_NUMBER_INT);
+
+            // Increment the number by 1
+            $newEmployeeNumber = $lastEmployeeNumber + 1;
+        } else {
+            // If no employees exist, start from 1
+            $newEmployeeNumber = 1;
+        }
+
+        // Format the new employee ID (e.g., #EMP0000007)
+        return '#EMP' . sprintf('%07d', $newEmployeeNumber);
+    }
 
     public function store(Request $request)
     {
@@ -77,10 +96,29 @@ class EmployeeController extends Controller
         // Create and save the employee record
         $employee = new Employee();
         $employee->user_id = $user->id;
+        $employee->dob = $request['dob'];
+        $employee->gender = $request['gender'];
         $employee->phone = $validatedData['phone'];
         $employee->address = $request['address'];
+
+        $employee->employee_id = $this->generateEmployeeId();
+
+        $employee->branch_id = $request['branch_id'];
+        $employee->department_id = $request['department_id'];
+        $employee->designation_id = $request['designation_id'];
+        $employee->company_doj = $request['company_doj'];
+        // $employee->documents = $document_implode;
+        $employee->account_holder_name = $request['account_holder_name'];
+        $employee->account_number = $request['account_number'];
+        $employee->bank_name = $request['bank_name'];
+        $employee->bank_identifier_code = $request['bank_identifier_code'];
+        $employee->branch_location = $request['branch_location'];
+        $employee->tax_payer_id = $request['tax_payer_id'];
+        $employee->created_by = Auth::user()->id;
         $employee->joinning_date = $validatedData['joinning_date'];
+
         $employee->save();
+
 
         // Redirect with a success message
         return redirect()->route('employees')->with('success', 'Employee created successfully.');
