@@ -24,9 +24,9 @@ const Nav = ({ user_type }) => {
         }
     }, [user_type]);
 
-    const menuitems = [
-        'Submenu 1',
-        'Submenu 2',
+  const menuitems = [
+        {name:'employee setup',link:"/employees"},
+        {name:'leave management',link:"/leave-index"},
     ]
 
     return (
@@ -47,7 +47,7 @@ r
              <img src="/SCS-01-removebg-preview.png" alt="Description" className="w-[85%]" />
 
                 </div>
-                <DropdownMenu icon={<FaHome/>} name={'Dashboard'} items={menuitems}/>
+                <DropdownMenu icon={<FaHome/>} name={'HRMS'} items={menuitems}/>
                 <li className={url === '/dashboard' ? 'active bg-[#0A1B3F] p-2 text-[0.9rem] text-white' : ' p-2  text-black text-[0.9rem]'}>
                             <Link href='/dashboard' className='flex space-x-2'> <span className='grid place-items-center' > <FaHome/> </span> <span>Dashboard</span></Link>
                         </li>
