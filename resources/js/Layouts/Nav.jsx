@@ -24,9 +24,15 @@ const Nav = ({ user_type }) => {
         }
     }, [user_type]);
 
+<<<<<<< HEAD
   const menuitems = [
         {name:'employee setup',link:"/employees"},
         {name:'leave management',link:"/leave-index"},
+=======
+    const menuitems = [
+        {name:'Submenu 1',link:""},
+        {name:'Submenu 2',link:""},
+>>>>>>> 405acf873cf2974a1d36cb5d737168341262ad05
     ]
 
     return (
