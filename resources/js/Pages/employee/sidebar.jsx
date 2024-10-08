@@ -7,7 +7,7 @@ const Sidebar = () => {
       <ul className="space-y-2">
         <li className="font-medium text-white"> <Link href="/branches">Branch</Link>  </li>
         <li className="text-gray-300 hover:text-white"> <Link href="/departments">Department</Link></li>
-        <li className="text-gray-300 hover:text-white">Designation</li>
+        <li className="text-gray-300 hover:text-white"> <Link href="/designations">Designation</Link></li>
         <li className="text-gray-300 hover:text-white"> <Link href="/leave-type">Leave Type</Link></li>
         <li className="text-gray-300 hover:text-white"> <Link href="/documents">Document Type</Link></li>
         <li className="text-gray-300 hover:text-white"><Link href="/payslips">Payslip Type</Link> </li>
