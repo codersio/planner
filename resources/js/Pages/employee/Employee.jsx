@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+ import React, { useState, useEffect } from 'react';
 import Header from '@/Layouts/Header';
 import Nav from '@/Layouts/Nav';
 import { Link } from '@inertiajs/react';

@@ -22,6 +22,7 @@ use App\Http\Controllers\HolidayWorkController;
 use App\Http\Controllers\LeaveManagementController;
 use App\Http\Controllers\NotificationAllController;
 use App\Http\Controllers\PaySlipController;
+use App\Http\Controllers\SalaryController;
 use Flasher\Prime\Test\Constraint\NotificationCount;
 
 // Route::get('/', function () {
@@ -197,3 +198,7 @@ Route::resource('payslips', PaySlipController::class);
 Route::resource('documents', DocumentController::class);
 // Route::get('attendances', [AttendanceController::class, 'index']);
 Route::resource('attendances', AttendanceController::class);
+
+
+Route::get('/salaries', [SalaryController::class, 'index']);
+Route::post('/generate-salary', [SalaryController::class, 'generateForAll']);

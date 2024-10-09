@@ -30,7 +30,9 @@ const Create = ({ user, user_type, roles, notif }) => {
         bank_identifier_code: '',
         branch_location: '',
         tax_payer_id: '',
-        roleemployee: ''
+        roleemployee: '',
+      net_salary: '',
+      basic_salary: '',
     });
 
     const handleChange = (e) => {
@@ -175,7 +177,16 @@ const Create = ({ user, user_type, roles, notif }) => {
       <div>
         <label htmlFor="tax_payer_id">Tax Payer ID</label>
         <input id="tax_payer_id" className='w-full rounded-lg' name="tax_payer_id" type="text" value={data.tax_payer_id} onChange={handleChange} />
-      </div>
+            </div>
+            
+            <div>
+              <label htmlFor="tax_payer_id">Basic salary *</label>
+              <input id="tax_payer_id" className='w-full rounded-lg' name="basic_salary" type="text" value={data.basic_salary} onChange={handleChange} />
+            </div>
+            <div>
+              <label htmlFor="tax_payer_id">Gross salary *</label>
+              <input id="tax_payer_id" className='w-full rounded-lg' name="net_salary" type="text" value={data.net_salary} onChange={handleChange} />
+            </div>
 
       <button type="submit" className='bg-blue-600 p-2 rounded-md text-white w-[30%] col-span-2'>Create</button>
     </form>

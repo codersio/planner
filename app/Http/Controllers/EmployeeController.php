@@ -104,6 +104,8 @@ class EmployeeController extends Controller
         $employee->employee_id = $this->generateEmployeeId();
 
         $employee->branch_id = $request['branch_id'];
+        $employee->basic_salary = $request['basic_salary'];
+        $employee->net_salary = $request['net_salary'];
         $employee->department_id = $request['department_id'];
         $employee->designation_id = $request['designation_id'];
         $employee->company_doj = $request['company_doj'];
