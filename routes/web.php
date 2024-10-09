@@ -58,6 +58,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/projects-update/{id}', [ProjectController::class, 'update']);
         Route::get('/projects-delete/{id}', [ProjectController::class, 'destroy']);
         Route::get('/projects-show/{id}', [ProjectController::class, 'show']);
+        Route::get('/attendance', [AttendanceController::class, 'index'])->name('attandance');
 
 
 
