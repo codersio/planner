@@ -21,7 +21,9 @@ class AttendanceController extends Controller
             // dd($permissions);
         }
         $notif = \Auth::user()->notifications;
-        return Inertia::render('attendance/index', compact('user', 'userss', 'user_type'));
+        $employees = User::join('employees', 'employees.user_id', '=', 'users.id')
+            ->select('users.name', 'users.id')->get();
+        return Inertia::render('attendance/index', compact('user', 'userss', 'user_type','employees'));
     }
 
     public function create()
@@ -45,8 +47,6 @@ class AttendanceController extends Controller
         // ]);
 
         Attendance::create($request->all());
-
-
 
         return redirect()->route('attendances.index')->with('success', 'Attendance recorded successfully.');
     }
