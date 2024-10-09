@@ -6,15 +6,17 @@ import React, { useState } from 'react'
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import { FaPencil, FaXmark } from 'react-icons/fa6';
 
-const Attendance = ({ user, notif, user_type, documents }) => {
+const Attendance = ({ user, notif, user_type, documents,employees }) => {
     const [modal, setModal] = useState(false)
     const [editModal, setEditModal] = useState(false)
-    const { } = useForm({
+    const { post,data,setData,processing,errors } = useForm({
         employee_id: '',
         date: '',
         in_time: '',
         out_time: ''
     });
+
+
     return (
         <div className='w-[85.2%] ml-[11.5rem]'>
             <Header user={user} notif={notif} />
@@ -32,8 +34,12 @@ const Attendance = ({ user, notif, user_type, documents }) => {
                                 <label htmlFor="">Employee</label>
                                 <select name="" className='form-select rounded text-sm'>
                                     <option value="">-- Select Employee --</option>
-                                    <option value="">John Doe</option>
-                                    <option value="">Mark Oren</option>
+                                    {
+                                        employees.map((emp,index)=>(
+                                            <option key={index} value={emp.id}>{ emp.name }</option>
+                                        ))
+                                    }
+                                    
                                 </select>
                             </div>
                             <div className='flex flex-col text-sm gap-y-2'>
@@ -41,11 +47,11 @@ const Attendance = ({ user, notif, user_type, documents }) => {
                                 <input type="date" className='form-input rounded text-sm' />
                             </div>
                             <div className='flex flex-col text-sm gap-y-2'>
-                                <label htmlFor="">Attandance Date</label>
+                                <label htmlFor="">In Time</label>
                                 <input type="time" className='form-input rounded text-sm' />
                             </div>
                             <div className='flex flex-col text-sm gap-y-2'>
-                                <label htmlFor="">Attandance Date</label>
+                                <label htmlFor="">Out Time</label>
                                 <input type="time" className='form-input rounded text-sm' />
                             </div>
                             <div className='flex justify-center text-sm gap-y-2'>
@@ -108,11 +114,11 @@ const Attendance = ({ user, notif, user_type, documents }) => {
                                                 <input type="date" className='form-input rounded text-sm' />
                                             </div>
                                             <div className='flex flex-col text-sm gap-y-2'>
-                                                <label htmlFor="">Attandance Date</label>
+                                                <label htmlFor="">In Time</label>
                                                 <input type="time" className='form-input rounded text-sm' />
                                             </div>
                                             <div className='flex flex-col text-sm gap-y-2'>
-                                                <label htmlFor="">Attandance Date</label>
+                                                <label htmlFor="">Out Time</label>
                                                 <input type="time" className='form-input rounded text-sm' />
                                             </div>
                                             <div className='flex justify-center text-sm gap-y-2'>
