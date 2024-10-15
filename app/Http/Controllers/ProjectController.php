@@ -530,6 +530,9 @@ class ProjectController extends Controller
     }
 
     public function taskcalendar(){
-       return Inertia::render('projects/taskcalendar');
+        $events = Project::join('tasks','tasks.project_id','=','projects.id')->get();
+       return Inertia::render('projects/taskcalendar',[
+        'events'=>$events
+       ]);
     }
 }

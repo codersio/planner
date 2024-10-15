@@ -4,7 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import Header from '@/Layouts/Header'
 import Nav from '@/Layouts/Nav'
 
-function taskcalendar({ notif, usrrr, user_type, user }) {
+function taskcalendar({ notif, usrrr, user_type, user,events }) {
     return (
         <div className='w-[85.2%] ml-[11.5rem]'>
             <Header user={user} notif={notif} />
@@ -17,10 +17,18 @@ function taskcalendar({ notif, usrrr, user_type, user }) {
                     <FullCalendar
                         plugins={[dayGridPlugin]}
                         initialView="dayGridMonth"
-                        events={[
-                            { title: 'demo event', start: '2024-10-16', end:"2024-10-18" },
-                            
-                          ]}
+                        events={events.map((ev,i)=>({
+                            title:ev.task_name,
+                            start:ev.sdate,
+                            end:ev.edate,
+                            description:ev.title
+                        }))}
+                        eventContent={(eventInfo) => (
+                            <>
+                                <b>{eventInfo.event.title}</b>
+                                <p>{eventInfo.event.extendedProps.description}</p>
+                            </>
+                        )}
                     />
                 </div>
             </div>

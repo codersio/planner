@@ -129,13 +129,14 @@ const Nav = ({ user_type }) => {
                 } */}
                     {
                         permissions.includes('view_role') && (
-                            <li className={url === '/roles-permission-details' ? 'active bg-[#0A1B3F] p-2 px-5 text-[0.9rem] text-white' : ' p-2    text-black text-[0.9rem]'}>
+                            <li className={url === '/roles-permission-details' ? 'active bg-[#0A1B3F] p-2 px-5 text-[0.9rem] text-white' : 'p-2 text-black text-[0.9rem]'}>
                                 <Link href='/roles-permission-details' className='flex space-x-2'> <span> <FaHandPaper /></span> <span>Roles</span> </Link>
                             </li>
                         )
                     }
                     <DropdownMenu icon={<FaFolderClosed />} name={'Project Management'} items={[{name:'Projects',link:'/projects'},{name:'Tasks',link:'/projects-task'},{name:'Task Calendar',link:'/taskcalendar'},{name:'Reports',link:'/reports-get'}]} />
-                    <DropdownMenu icon={<FaUsers />} name={'User Management'} items={[{name:'User',link:'#'},{name:'Client',link:'#'},{name:'Agent',link:'#'}]} />
+                    {/* <DropdownMenu icon={<FaUsers />} name={'User Management'} items={[{name:'User',link:'#'},{name:'Client',link:'#'},{name:'Agent',link:'#'}]} /> */}
+                    <DropdownMenu icon={<FaUsers />} name={'User Management'} items={[{name:'Client',link:'/clients'}]} />
                     {/* {
                     permissions.includes('view_report') && (
                         <li className={url === '/reports-get' ? 'active bg-[#0A1B3F] p-2    text-[0.9rem] text-white' : ' p-2  text-black text-[0.9rem]'}>
