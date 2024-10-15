@@ -60,6 +60,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/projects-delete/{id}', [ProjectController::class, 'destroy']);
         Route::get('/projects-show/{id}', [ProjectController::class, 'show']);
         Route::get('/attendance', [AttendanceController::class, 'index'])->name('attandance');
+        Route::post('/attendance', [AttendanceController::class, 'index'])->name('attandance');
 
 
 
