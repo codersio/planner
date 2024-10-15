@@ -201,6 +201,7 @@ Route::resource('documents', DocumentController::class);
 // Route::get('attendances', [AttendanceController::class, 'index']);
 Route::resource('attendances', AttendanceController::class);
 Route::get('/payroll',[ReportController::class,'payroll']);
+Route::post('/payroll/store/{id}',[ReportController::class,'payrollStore']);
 
 Route::get('/salaries', [SalaryController::class, 'index']);
 Route::post('/generate-salary', [SalaryController::class, 'generateForAll']);

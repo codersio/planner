@@ -114,130 +114,20 @@ class ReportController extends Controller
         return Inertia::render('reports/employeehours', compact('project', 'user', 'user_type', 'usrrr', 'employee', 'tasks', 'notif'));
     }
 
-    public function payroll(Request $request)
+    public function payroll()
     {
-        $employees = Salary::join('employees','employees.id','=','salaries.employee_id')->join('users','users.id','=','employees.user_id')->get();
-        dd($employees);
+        $employees = Salary::join('employees', 'employees.id', '=', 'salaries.employee_id')->join('users', 'users.id', '=', 'employees.user_id')->select('employees.id', 'users.name', 'employees.salary', 'employees.salary_type', 'salaries.status')->get();
 
-        // if (Auth::user()->can('manage report')) {
-            // $branch = Branch::all();
-            // $department = Department::all();
-            // $employees = Employee::join('users','users.id','=','employees.user_id')->select('users.id', 'users.name');
-            // if (!empty($request->employee_id) && $request->employee_id[0] != 0) {
-            //     $employees->where('id', $request->employee_id);
-            // }
-            // $employees = $employees->where('created_by', Auth::user()->creatorId());
+        return Inertia::render('reports/payroll', [
+            'employees' => $employees,
+        ]);
+    }
 
-            // $data['branch'] = __('All');
-            // $data['department'] = __('All');
-            // $filterYear['branch'] = __('All');
-            // $filterYear['department'] = __('All');
-            // $filterYear['type'] = __('Monthly');
-            // $filterYear['dateYearRange'] = '';
-
-            // $payslips = Payslip::join('users', 'payslips.user_id', '=', 'users.id')->select('payslips.*', 'users.name');
-
-            // if ($request->type == 'monthly' && !empty($request->month)) {
-
-            //     $payslips->where('salary_month', $request->month);
-
-            //     $filterYear['dateYearRange'] = date('M-Y', strtotime($request->month));
-            //     $filterYear['type'] = __('Monthly');
-            // } elseif (!isset($request->type)) {
-            //     $month = date('Y-m');
-
-            //     $payslips->where('salary_month', $month);
-
-            //     $filterYear['dateYearRange'] = date('M-Y', strtotime($month));
-            //     $filterYear['type'] = __('Monthly');
-            // }
-
-            // if ($request->type == 'yearly' && !empty($request->year)) {
-            //     $startMonth = $request->year . '-01';
-            //     $endMonth = $request->year . '-12';
-            //     $payslips->where('salary_month', '>=', $startMonth)->where('salary_month', '<=', $endMonth);
-
-            //     $filterYear['dateYearRange'] = $request->year;
-            //     $filterYear['type'] = __('Yearly');
-            // }
-
-            // if (!empty($request->branch)) {
-            //     $payslips->where('employees.branch_id', $request->branch);
-
-            //     $filterYear['branch'] = !empty(Branch::find($request->branch)) ? Branch::find($request->branch)->name : '';
-            // }
-
-            // if (!empty($request->department)) {
-
-            //     $payslips->where('employees.department_id', $request->department);
-
-            //     $filterYear['department'] = !empty(Department::find($request->department)) ? Department::find($request->department)->name : '';
-            // }
-
-            // $employee = $employees->get()->pluck('name', 'id')->toArray();
-
-            // $payslips = $payslips->whereIn('users.name', $employee)->get();
-
-            // $totalBasicSalary = $totalNetSalary = $totalAllowance = $totalCommision = $totalLoan = $totalSaturationDeduction = $totalOtherPayment = $totalOverTime = 0;
-
-            // foreach ($payslips as $payslip) {
-            //     $totalBasicSalary += $payslip->basic_salary;
-            //     $totalNetSalary += $payslip->net_payble;
-
-            //     $allowances = json_decode($payslip->allowance);
-            //     foreach ($allowances as $allowance) {
-            //         $totalAllowance += $allowance->amount;
-            //     }
-
-            //     $commisions = json_decode($payslip->commission);
-            //     foreach ($commisions as $commision) {
-            //         $totalCommision += $commision->amount;
-            //     }
-
-            //     $loans = json_decode($payslip->loan);
-            //     foreach ($loans as $loan) {
-            //         $totalLoan += $loan->amount;
-            //     }
-
-            //     $saturationDeductions = json_decode($payslip->saturation_deduction);
-            //     foreach ($saturationDeductions as $saturationDeduction) {
-            //         $totalSaturationDeduction += $saturationDeduction->amount;
-            //     }
-
-            //     $otherPayments = json_decode($payslip->other_payment);
-            //     foreach ($otherPayments as $otherPayment) {
-            //         $totalOtherPayment += $otherPayment->amount;
-            //     }
-
-            //     $overtimes = json_decode($payslip->overtime);
-            //     foreach ($overtimes as $overtime) {
-            //         $days = $overtime->number_of_days;
-            //         $hours = $overtime->hours;
-            //         $rate = $overtime->rate;
-
-            //         $totalOverTime += ($rate * $hours) * $days;
-            //     }
-            // }
-
-            // $filterData['totalBasicSalary'] = $totalBasicSalary;
-            // $filterData['totalNetSalary'] = $totalNetSalary;
-            // $filterData['totalAllowance'] = $totalAllowance;
-            // $filterData['totalCommision'] = $totalCommision;
-            // $filterData['totalLoan'] = $totalLoan;
-            // $filterData['totalSaturationDeduction'] = $totalSaturationDeduction;
-            // $filterData['totalOtherPayment'] = $totalOtherPayment;
-            // $filterData['totalOverTime'] = $totalOverTime;
-
-            // $starting_year = date('Y', strtotime('-5 year'));
-            // $ending_year = date('Y', strtotime('+5 year'));
-
-            // $filterYear['starting_year'] = $starting_year;
-            // $filterYear['ending_year'] = $ending_year;
-
-            // return view('report\payroll', compact('payslips', 'filterData', 'branch', 'department', 'filterYear'));
-            return Inertia::render('reports/payroll');
-        // } else {
-        //     return redirect()->back()->with('error', __('Permission denied.'));
-        // }
+    public function payrollStore($id){
+       $up = Salary::where('employee_id',$id)->first();
+    //    dd($up);
+       $up->status = "Approved";
+       $up->save();
+       return \redirect()->back();
     }
 }
