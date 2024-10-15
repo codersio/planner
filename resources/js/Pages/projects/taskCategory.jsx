@@ -102,7 +102,7 @@ const TaskCategory = ({ taskcategory, user, user_type, notif }) => {
             </div>
             <div className='p-3 border-2 table-section'>
                 <table className='table border w-full p-4'>
-                    <thead className='bg-[#065E91] text-white'>
+                    <thead className='bg-gray-700 text-white'>
                     <tr>
                         <th className='p-3 text-left border'>Category Name</th>
                         <th className='p-3 text-left border'>Action</th>

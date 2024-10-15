@@ -31,7 +31,7 @@ const Nav = ({ user_type }) => {
         { name: 'leave management', link: "/leave-index" },
         { name: 'employee setup', link: "/branches" },
         { name: 'attendance', link: "/attendance" },
-        { name:'set salary',link:'/salaries' },
+        { name:'Salary generate',link:'/salaries' },
         { name:'payroll',link:'/payroll' },
     ]
 
@@ -134,7 +134,7 @@ const Nav = ({ user_type }) => {
                             </li>
                         )
                     }
-                    <DropdownMenu icon={<FaFolderClosed />} name={'Project Management'} items={[{name:'Projects',link:'/projects'}]} />
+                    <DropdownMenu icon={<FaFolderClosed />} name={'Project Management'} items={[{name:'Projects',link:'/projects'},{name:'Tasks',link:'/projects-task'},{name:'Task Calendar',link:'/taskcalendar'},{name:'Reports',link:'/reports-get'}]} />
                     <DropdownMenu icon={<FaUsers />} name={'User Management'} items={[{name:'User',link:'#'},{name:'Client',link:'#'},{name:'Agent',link:'#'}]} />
                     {/* {
                     permissions.includes('view_report') && (

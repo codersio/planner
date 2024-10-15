@@ -528,4 +528,8 @@ class ProjectController extends Controller
             'total_hours' => $totalHours,
         ]);
     }
+
+    public function taskcalendar(){
+       return Inertia::render('projects/taskcalendar');
+    }
 }
