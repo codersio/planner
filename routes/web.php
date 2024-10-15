@@ -136,6 +136,7 @@ Route::get('/reports-get', [ReportController::class, 'reportView'])->name('repor
 Route::post('/task-store', [ProjectController::class, 'taskStore']);
 Route::get('/taskcalendar',[ProjectController::class,'taskcalendar']);
 Route::get('/timesheets/{week}', [TimesheetController::class, 'index']);
+Route::get('/taskcalendar',[ProjectController::class,'taskcalendar']);
 
 Route::get('/timesheets/{timesheet}', [TimesheetController::class, 'show']);
 Route::put('/timesheets/{timesheet}', [TimesheetController::class, 'update']);
