@@ -46,6 +46,7 @@ class CheckPermission
             'employees-edit/{id}' => 'edit_employee',
             'employees-update/{id}' => 'edit_employee',
             'employees-destroy/{id}' => 'delete_employee',
+            'attendance'=>'view_employee',
             'projects' => 'view_project',
             'projects-create' => 'create_project',
             'projects-store' => 'create_project',

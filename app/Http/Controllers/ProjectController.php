@@ -2,530 +2,1619 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
+use App\Models\Bug;
 use App\Models\Task;
-use App\Models\TaskStatus;
 use App\Models\User;
-use Inertia\Inertia;
+use App\Models\Vender;
+use App\Models\BugFile;
 use App\Models\Project;
-use App\Models\Employee;
-use App\Models\TaskAssign;
-use App\Models\TaskCategory;
+use App\Models\Utility;
+use App\Models\TaskFile;
+use App\Models\BugStatus;
+use App\Models\Milestone;
+use App\Models\TaskStage;
+use App\Models\BugComment;
+use App\Models\ActivityLog;
+use App\Models\ProjectTask;
+use App\Models\ProjectUser;
+use App\Models\TaskComment;
+use App\Models\TimeTracker;
+use App\Models\ProjectStage;
 use Illuminate\Http\Request;
-use App\Models\ProjectAssign;
-use App\Notifications\TaskAssign as NotificationsTaskAssign;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Validator;
 
 class ProjectController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($view = 'grid')
     {
-        $user = Auth::user()->name;
-        $userss = Auth::user();
-        if ($userss) {
-            // Ensure permissions are assigned and fetched correctly
-            $user_type = $userss->getAllPermissions()->pluck('name')->toArray();
-            // dd($permissions);
-        }
-        $projects = Project::all();
-        // dd($projects);
-        $employees = Employee::all();
-        $notif = Auth::user()->notifications;
-        return Inertia::render('projects/projects', compact('projects', 'user', 'employees', 'user_type', 'notif'));
-    }
 
-    public function proassignemployess()
-    {
-        $userss = Auth::user();
-        $user = Auth::user()->name;
-        if ($userss) {
-            // Ensure permissions are assigned and fetched correctly
-            $user_type = $userss->getAllPermissions()->pluck('name')->toArray();
-            // dd($permissions);
+        if (\Auth::user()->can('manage project')) {
+            return view('projects.index', compact('view'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
         }
-        $employee = User::join('employees', 'employees.user_id', '=', 'users.id')
-            ->select('employees.phone', 'employees.address', 'employees.joinning_date', 'users.name', 'users.email', 'users.id')->get();
-        // $task = Project::with(['tasks', 'users'])->get();
-        $taskcategory = TaskCategory::all();
-        $tasks = Project::with(['tasks.users' => function ($query) {
-            $query->withPivot('employee_hours'); // Ensure employee_time is included in the query
-        }])->get();
-        //        dd($tasks);
-        $projects = Project::all();
-        $notif = Auth::user()->notifications;
-        return Inertia::render('projects/proemployee', compact('tasks', 'user', 'user_type', 'notif', 'taskcategory', 'employee', 'projects'));
     }
 
     /**
      * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
      */
-    public function create(Request $request)
+    public function create()
     {
-        $employees = $employee = User::join('employees', 'employees.user_id', '=', 'users.id')
-            ->select('employees.phone', 'employees.address', 'employees.joinning_date', 'users.name', 'users.email', 'users.id')->get();
-        $userss = Auth::user();
-        $user = Auth::user()->name;
-        if ($userss) {
-            // Ensure permissions are assigned and fetched correctly
-            $user_type = $userss->getAllPermissions()->pluck('name')->toArray();
-            // dd($permissions);
+        if (\Auth::user()->can('create project')) {
+            $users   = User::where('created_by', '=', \Auth::user()->creatorId())->where('type', '!=', 'client')->get()->pluck('name', 'id');
+            $clients = User::where('created_by', '=', \Auth::user()->creatorId())->where('type', '=', 'client')->get()->pluck('name', 'id');
+            $clients->prepend('Select Client', '');
+            $users->prepend('Select User', '');
+            $sites = Vender::all();
+            // dd($sites);
+            return view('projects.create', compact('clients', 'users', 'sites'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
         }
-        $notif = Auth::user()->notifications;
-        return Inertia::render('projects/create', compact('employees', 'user_type', 'user', 'notif'));
     }
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
-        // dd($request->all());
-        $project = new Project();
-        $project->title = $request->title;
-        $project->estimate_time = $request->estimate_time;
-        $project->estimate_budget = $request->estimate_budget;
-        $project->start_date = $request->start_date;
-        $project->end_date = $request->end_date;
-        // $project->employee_id = $request->employee_id;
-        $project->save();
 
-        // foreach ($request->employee_id as $employee_id) {
-        //     $assign = new ProjectAssign();
-        //     $assign->project_id = $project->id;
-        //     $assign->employee_id = $employee_id;
-        //     $assign->save();
-        // }
-        return redirect()->route('projects')->with('project', 'Project created successfully');
+        //        dd($request->all());
+
+        if (\Auth::user()->can('create project')) {
+            $validator = \Validator::make(
+                $request->all(),
+                [
+                    'project_name' => 'required',
+                    'project_image' => 'required',
+                ]
+            );
+            if ($validator->fails()) {
+                return redirect()->back()->with('error', Utility::errorFormat($validator->getMessageBag()));
+            }
+            $project = new Project();
+            $project->project_name = $request->project_name;
+            $project->start_date = date("Y-m-d H:i:s", strtotime($request->start_date));
+            $project->end_date = date("Y-m-d H:i:s", strtotime($request->end_date));
+
+            if ($request->hasFile('project_image')) {
+                //storage limit
+                $image_size = $request->file('project_image')->getSize();
+                $result = Utility::updateStorageLimit(\Auth::user()->creatorId(), $image_size);
+                if ($result == 1) {
+                    $imageName = time() . '.' . $request->project_image->extension();
+                    $request->file('project_image')->storeAs('projects', $imageName);
+                    $project->project_image      = 'projects/' . $imageName;
+                }
+            }
+
+            $project->client_id = $request->client;
+            $project->budget = !empty($request->budget) ? $request->budget : 0;
+            $project->description = $request->description;
+            $project->status = $request->status;
+            $project->estimated_hrs = $request->estimated_hrs;
+            $project->tags = $request->tag;
+            $project->created_by = \Auth::user()->creatorId();
+            $project['copylinksetting']   = '{"member":"on","milestone":"off","basic_details":"on","activity":"off","attachment":"on","bug_report":"on","task":"off","tracker_details":"off","timesheet":"off" ,"password_protected":"off"}';
+
+            $project->save();
+
+            if (\Auth::user()->type == 'company') {
+
+                ProjectUser::create(
+                    [
+                        'project_id' => $project->id,
+                        'user_id' => Auth::user()->id,
+                    ]
+                );
+
+                if ($request->user) {
+                    foreach ($request->user as $key => $value) {
+                        ProjectUser::create(
+                            [
+                                'project_id' => $project->id,
+                                'user_id' => $value,
+                            ]
+                        );
+                    }
+                }
+            } else {
+                ProjectUser::create(
+                    [
+                        'project_id' => $project->id,
+                        'user_id' => Auth::user()->creatorId(),
+                    ]
+                );
+
+                ProjectUser::create(
+                    [
+                        'project_id' => $project->id,
+                        'user_id' => Auth::user()->id,
+                    ]
+                );
+
+                if ($request->user) {
+                    foreach ($request->user as $key => $value) {
+                        ProjectUser::create(
+                            [
+                                'project_id' => $project->id,
+                                'user_id' => $value,
+                            ]
+                        );
+                    }
+                }
+            }
+
+
+            //For Notification
+            $setting  = Utility::settings(\Auth::user()->creatorId());
+            $projectNotificationArr = [
+                'project_name' => $request->project_name,
+                'user_name' => \Auth::user()->name,
+            ];
+            //Slack Notification
+            if (isset($setting['project_notification']) && $setting['project_notification'] == 1) {
+                Utility::send_slack_msg('new_project', $projectNotificationArr);
+            }
+
+            //Telegram Notification
+            if (isset($setting['telegram_project_notification']) && $setting['telegram_project_notification'] == 1) {
+                Utility::send_telegram_msg('new_project', $projectNotificationArr);
+            }
+
+            //webhook
+            $module = 'New Project';
+            $webhook =  Utility::webhookSetting($module);
+            if ($webhook) {
+                $parameter = json_encode($project);
+                $status = Utility::WebhookCall($webhook['url'], $parameter, $webhook['method']);
+                if ($status == false) {
+                    return redirect()->back()->with('error', __('Webhook call failed.'));
+                }
+            }
+
+
+            return redirect()->route('projects.index')->with('success', __('Project Add Successfully') . ((isset($result) && $result != 1) ? '<br> <span class="text-danger">' . $result . '</span>' : ''));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
+        }
     }
 
     /**
      * Display the specified resource.
+     *
+     * @param  \App\Poject  $poject
+     * @return \Illuminate\Http\Response
      */
-    public function show(Project $project, $id)
+    public function show(Project $project)
     {
-        $userss = Auth::user();
-        $user = Auth::user()->name;
-        if ($userss) {
-            // Ensure permissions are assigned and fetched correctly
-            $user_type = $userss->getAllPermissions()->pluck('name')->toArray();
-            // dd($permissions);
+
+        if (\Auth::user()->can('view project')) {
+
+            $usr           = Auth::user();
+            if (\Auth::user()->type == 'client') {
+                $user_projects = Project::where('client_id', \Auth::user()->id)->pluck('id', 'id')->toArray();;
+            } else {
+                $user_projects = $usr->projects->pluck('id')->toArray();
+            }
+            if (in_array($project->id, $user_projects)) {
+                $project_data = [];
+                // Task Count
+                $tasks = ProjectTask::where('project_id', $project->id)->get();
+                $project_task         = $tasks->count();
+                $completedTask = ProjectTask::where('project_id', $project->id)->where('is_complete', 1)->get();
+
+                $project_done_task    = $completedTask->count();
+
+                $project_data['task'] = [
+                    'total' => number_format($project_task),
+                    'done' => number_format($project_done_task),
+                    'percentage' => Utility::getPercentage($project_done_task, $project_task),
+                ];
+
+                // end Task Count
+
+                // Expense
+                $expAmt = 0;
+                foreach ($project->expense as $expense) {
+                    $expAmt += $expense->amount;
+                }
+
+                $project_data['expense'] = [
+                    'allocated' => $project->budget,
+                    'total' => $expAmt,
+                    'percentage' => Utility::getPercentage($expAmt, $project->budget),
+                ];
+                // end expense
+
+
+                // Users Assigned
+                $total_users = User::where('created_by', '=', $usr->id)->count();
+
+
+                $project_data['user_assigned'] = [
+                    'total' => number_format($total_users) . '/' . number_format($total_users),
+                    'percentage' => Utility::getPercentage($total_users, $total_users),
+                ];
+                // end users assigned
+
+                // Day left
+                $total_day                = Carbon::parse($project->start_date)->diffInDays(Carbon::parse($project->end_date));
+                $remaining_day            = Carbon::parse($project->start_date)->diffInDays(now());
+                $project_data['day_left'] = [
+                    'day' => number_format($remaining_day) . '/' . number_format($total_day),
+                    'percentage' => Utility::getPercentage($remaining_day, $total_day),
+                ];
+                // end Day left
+
+                // Open Task
+                $remaining_task = ProjectTask::where('project_id', '=', $project->id)->where('is_complete', '=', 0)->where('created_by', \Auth::user()->creatorId())->count();
+                $total_task     = $project->tasks->count();
+
+                $project_data['open_task'] = [
+                    'tasks' => number_format($remaining_task) . '/' . number_format($total_task),
+                    'percentage' => Utility::getPercentage($remaining_task, $total_task),
+                ];
+                // end open task
+
+                // Milestone
+                $total_milestone           = $project->milestones()->count();
+                $complete_milestone        = $project->milestones()->where('status', 'LIKE', 'complete')->count();
+                $project_data['milestone'] = [
+                    'total' => number_format($complete_milestone) . '/' . number_format($total_milestone),
+                    'percentage' => Utility::getPercentage($complete_milestone, $total_milestone),
+                ];
+                // End Milestone
+
+                // Time spent
+
+                $times = $project->timesheets()->where('created_by', '=', $usr->id)->pluck('time')->toArray();
+                $totaltime                  = str_replace(':', '.', Utility::timeToHr($times));
+                $project_data['time_spent'] = [
+                    'total' => number_format($totaltime) . '/' . number_format($totaltime),
+                    'percentage' => Utility::getPercentage(number_format($totaltime), $totaltime),
+                ];
+                // end time spent
+
+                // Allocated Hours
+                $hrs = Project::projectHrs($project->id);
+
+                $project_data['task_allocated_hrs'] = [
+                    'hrs' => number_format($hrs['allocated']) . '/' . number_format($hrs['allocated']),
+                    'percentage' => Utility::getPercentage($hrs['allocated'], $hrs['allocated']),
+                ];
+                // end allocated hours
+
+                // Chart
+                $seven_days      = Utility::getLastSevenDays();
+                $chart_task      = [];
+                $chart_timesheet = [];
+                $cnt             = 0;
+                $cnt1            = 0;
+
+                foreach (array_keys($seven_days) as $k => $date) {
+                    $task_cnt     = $project->tasks()->where('is_complete', '=', 1)->whereRaw("find_in_set('" . $usr->id . "',assign_to)")->where('marked_at', 'LIKE', $date)->count();
+                    $arrTimesheet = $project->timesheets()->where('created_by', '=', $usr->id)->where('date', 'LIKE', $date)->pluck('time')->toArray();
+
+                    // Task Chart Count
+                    $cnt += $task_cnt;
+
+                    // Timesheet Chart Count
+                    $timesheet_cnt = str_replace(':', '.', Utility::timeToHr($arrTimesheet));
+                    $cn[]          = $timesheet_cnt;
+                    $cnt1          += $timesheet_cnt;
+
+                    $chart_task[]      = $task_cnt;
+                    $chart_timesheet[] = $timesheet_cnt;
+                }
+
+                $project_data['task_chart']      = [
+                    'chart' => $chart_task,
+                    'total' => $cnt,
+                ];
+                $project_data['timesheet_chart'] = [
+                    'chart' => $chart_timesheet,
+                    'total' => $cnt1,
+                ];
+
+                // end chart
+
+                return view('projects.view', compact('project', 'project_data'));
+            } else {
+                return redirect()->back()->with('error', __('Permission Denied.'));
+            }
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
         }
-        $project = Project::find($id);
-        $task = Task::where('project_id', $project->id)->get();
-        $notif = Auth::user()->notifications;
-        return Inertia::render('projects/view', compact('project', 'user', 'task', 'user_type', 'notif'));
     }
 
     /**
      * Show the form for editing the specified resource.
+     *
+     * @param  \App\Poject  $poject
+     * @return \Illuminate\Http\Response
      */
-    public function edit(Project $project, $id)
+    public function edit(Project $project)
     {
-        $project = Project::with('assignments.employee')->findOrFail($id);
-        // dd($project);
-        $userss = Auth::user();
-        $user = Auth::user()->name;
-        if ($userss) {
-            // Ensure permissions are assigned and fetched correctly
-            $user_type = $userss->getAllPermissions()->pluck('name')->toArray();
-            // dd($permissions);
+        if (\Auth::user()->can('edit project')) {
+            $clients = User::where('created_by', '=', \Auth::user()->creatorId())->where('type', '=', 'client')->get()->pluck('name', 'id');
+            $project = Project::findOrfail($project->id);
+            if ($project->created_by == \Auth::user()->creatorId()) {
+                return view('projects.edit', compact('project', 'clients'));
+            } else {
+                return response()->json(['error' => __('Permission denied.')], 401);
+            }
+            return view('projects.edit', compact('project'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
         }
-        $employees = User::all(); // Assuming employees are users
-        $notif = Auth::user()->notifications;
-        return Inertia::render('projects/edit', compact(
-            'project',
-            'employees',
-            'user_type',
-            'user',
-            'notif'
-        ));
     }
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Poject  $poject
+     * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Project $project)
     {
-        // $request->validate([
-        //     'title' => 'required|string|max:255',
-        //     'estimate_time' => 'required|string|max:255',
-        //     'estimate_budget' => 'required|numeric',
-        //     'start_date' => 'required|date',
-        //     'end_date' => 'required|date|after_or_equal:start_date',
-        //     // 'employee_id' => 'required|array',
-        //     'employee_id.*' => 'exists:users,id',
-        // ]);
+        if (\Auth::user()->can('edit project')) {
+            $validator = \Validator::make(
+                $request->all(),
+                [
+                    'project_name' => 'required',
+                ]
+            );
+            if ($validator->fails()) {
+                return redirect()->back()->with('error', Utility::errorFormat($validator->getMessageBag()));
+            }
+            $project = Project::find($project->id);
+            $project->project_name = $request->project_name;
+            $project->start_date = date("Y-m-d H:i:s", strtotime($request->start_date));
+            $project->end_date = date("Y-m-d H:i:s", strtotime($request->end_date));
+            if ($request->hasFile('project_image')) {
+                //storage limit
+                $file_path = $project->project_image;
+                $image_size = $request->file('project_image')->getSize();
+                $result = Utility::updateStorageLimit(\Auth::user()->creatorId(), $image_size);
 
-        $project = Project::findOrFail($id);
-        $project->title = $request->title;
-        $project->estimate_time = $request->estimate_time;
-        $project->estimate_budget = $request->estimate_budget;
-        $project->start_date = $request->start_date;
-        $project->end_date = $request->end_date;
-        $project->save();
+                if ($result == 1) {
+                    //                Utility::checkFileExistsnDelete([$project->project_image]);
+                    Utility::changeStorageLimit(\Auth::user()->creatorId(), $file_path);
+                    $imageName = time() . '.' . $request->project_image->extension();
+                    $request->file('project_image')->storeAs('projects', $imageName);
+                    $project->project_image = 'projects/' . $imageName;
+                }
+            }
+            $project->budget = $request->budget;
+            $project->client_id = $request->client;
+            $project->description = $request->description;
+            $project->status = $request->status;
+            $project->estimated_hrs = $request->estimated_hrs;
+            $project->tags = $request->tag;
+            $project->save();
 
-        // Update assignments
-        ProjectAssign::where('project_id', $id)->delete();
-
-        foreach ($request->employee_ids as $employee_id) {
-            ProjectAssign::create([
-                'project_id' => $project->id,
-                'employee_id' => $employee_id,
-            ]);
+            return redirect()->route('projects.index')->with('success', __('Project Updated Successfully') . ((isset($result) && $result != 1) ? '<br> <span class="text-danger">' . $result . '</span>' : ''));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
         }
-
-        // return redirect()->route('projects.index')->with('success', 'Project updated successfully.');
-        return back();
     }
-
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param  \App\Poject  $poject
+     * @return \Illuminate\Http\Response
      */
-
-
-    public function destroy($id)
+    public function destroy(Project $project)
     {
-        $project = Project::findOrFail($id);
-        $project->delete();
+        if (\Auth::user()->can('delete project')) {
+            if (!empty($project->project_image)) {
 
-        return redirect()->route('projects')->with('success', 'Project and related assignments deleted successfully.');
-    }
-    public function Task()
-    {
-        $userss = Auth::user();
-        $user = Auth::user()->name;
-        if ($userss) {
-            // Ensure permissions are assigned and fetched correctly
-            $user_type = $userss->getAllPermissions()->pluck('name')->toArray();
-            // dd($permissions);
+                //storage limit
+                $file_path = $project->project_image;
+                $result = Utility::changeStorageLimit(\Auth::user()->creatorId(), $file_path);
+
+                //                Utility::checkFileExistsnDelete([$project->project_image]);
+            }
+            $project->delete();
+            return redirect()->back()->with('success', __('Project Successfully Deleted.'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
         }
-        $employee = User::join('employees', 'employees.user_id', '=', 'users.id')
-            ->select('employees.phone', 'employees.address', 'employees.joinning_date', 'users.name', 'users.email', 'users.id')->get();
-        // $task = Project::with(['tasks', 'users'])->get();
-        $taskcategory = TaskCategory::all();
-        $tasks = Project::with(['tasks.users' => function ($query) {
-            $query->withPivot('employee_hours'); // Ensure employee_time is included in the query
-        }])->get();
-        //        dd($tasks);
-        $projects = Project::all();
-        $notif = Auth::user()->notifications;
-        return Inertia::render('projects/task', compact('tasks', 'user', 'user_type', 'notif', 'taskcategory', 'employee', 'projects'));
-    }
-    public function taskCreate()
-    {
-        $projects = Project::all();
-        // dd($projects);
-        $taskcategory = TaskCategory::all();
-        $employees = $employee = User::join('employees', 'employees.user_id', '=', 'users.id')
-            ->select('employees.phone', 'employees.address', 'employees.joinning_date', 'users.name', 'users.email', 'users.id')->get();
-        $userss = Auth::user();
-        $user = Auth::user()->name;
-        if ($userss) {
-            // Ensure permissions are assigned and fetched correctly
-            $user_type = $userss->getAllPermissions()->pluck('name')->toArray();
-            // dd($permissions);
-        }
-        $notif = Auth::user()->notifications;
-        return Inertia::render('projects/task-create', compact('employees', 'projects', 'taskcategory', 'user', 'user_type', 'notif'));
     }
 
-    public function taskStore(Request $request)
+    public function inviteMemberView(Request $request, $project_id)
     {
-        //         dd($request->all());
-        $project = new Task();
-        $project->task_name = $request->task_name;
-        $project->estimate_hours = $request->estimate_hours;
-        $project->status = $request->status;
-        $project->project_id = $request->project_id;
-        $project->sdate = $request->sdate;
-        $project->edate = $request->edate;
-        $project->status = 0;
-        // $project->employee_id = $request->employee_id;
+        $usr          = Auth::user();
+        $project      = Project::find($project_id);
+
+        $user_project = $project->users->pluck('id')->toArray();
+
+        $user_contact = User::where('created_by', \Auth::user()->creatorId())->where('type', '!=', 'client')->whereNOTIn('id', $user_project)->pluck('id')->toArray();
+        $arrUser      = array_unique($user_contact);
+        $users        = User::whereIn('id', $arrUser)->get();
+
+        return view('projects.invite', compact('project_id', 'users'));
+    }
+
+    public function inviteProjectUserMember(Request $request)
+    {
+        $authuser = Auth::user();
+
+        // Make entry in project_user tbl
+        ProjectUser::create(
+            [
+                'project_id' => $request->project_id,
+                'user_id' => $request->user_id,
+                'invited_by' => $authuser->id,
+            ]
+        );
+
+        // Make entry in activity_log tbl
+        ActivityLog::create(
+            [
+                'user_id' => $authuser->id,
+                'project_id' => $request->project_id,
+                'log_type' => 'Invite User',
+                'remark' => json_encode(['title' => $authuser->name]),
+            ]
+        );
+
+        return json_encode(
+            [
+                'code' => 200,
+                'status' => 'Success',
+                'success' => __('User invited successfully.'),
+            ]
+        );
+    }
+
+
+
+
+
+    public function destroyProjectUser($id, $user_id)
+    {
+        $project = Project::find($id);
+        if ($project->created_by == \Auth::user()->ownerId()) {
+            ProjectUser::where('project_id', '=', $project->id)->where('user_id', '=', $user_id)->delete();
+
+            return redirect()->back()->with('success', __('User successfully deleted!'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
+        }
+    }
+
+    public function loadUser(Request $request)
+    {
+        if ($request->ajax()) {
+            $project    = Project::find($request->project_id);
+            $returnHTML = view('projects.users', compact('project'))->render();
+
+            return response()->json(
+                [
+                    'success' => true,
+                    'html' => $returnHTML,
+                ]
+            );
+        }
+    }
+
+    public function milestone($project_id)
+    {
+        if (\Auth::user()->can('create milestone')) {
+            $project = Project::find($project_id);
+
+            return view('projects.milestone', compact('project'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
+        }
+    }
+
+    public function milestoneStore(Request $request, $project_id)
+    {
+        if (\Auth::user()->can('create milestone')) {
+            $project   = Project::find($project_id);
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'title' => 'required',
+                    'status' => 'required',
+                    'cost' => 'required',
+                    'due_date' => 'required',
+                    'start_date' => 'required'
+                ]
+            );
+
+            if ($validator->fails()) {
+                return redirect()->back()->with('error', Utility::errorFormat($validator->getMessageBag()));
+            }
+
+            $milestone              = new Milestone();
+            $milestone->project_id  = $project->id;
+            $milestone->title       = $request->title;
+            $milestone->status      = $request->status;
+            $milestone->cost        = $request->cost;
+            $milestone->start_date    = $request->start_date;
+            $milestone->due_date    = $request->due_date;
+            $milestone->description = $request->description;
+            $milestone->save();
+
+            ActivityLog::create(
+                [
+                    'user_id' => \Auth::user()->id,
+                    'project_id' => $project->id,
+                    'log_type' => 'Create Milestone',
+                    'remark' => json_encode(['title' => $milestone->title]),
+                ]
+            );
+
+            return redirect()->back()->with('success', __('Milestone successfully created.'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
+        }
+    }
+
+    public function milestoneEdit($id)
+    {
+        if (\Auth::user()->can('edit milestone')) {
+            $milestone = Milestone::find($id);
+
+            return view('projects.milestoneEdit', compact('milestone'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
+        }
+    }
+
+    public function milestoneUpdate($id, Request $request)
+    {
+        if (\Auth::user()->can('edit milestone')) {
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'title' => 'required',
+                    'status' => 'required',
+                    'cost' => 'required',
+                    'due_date' => 'required',
+                    'start_date' => 'required'
+                ]
+            );
+
+            if ($validator->fails()) {
+                return redirect()->back()->with('error', Utility::errorFormat($validator->getMessageBag()));
+            }
+
+            $milestone              = Milestone::find($id);
+            $milestone->title       = $request->title;
+            $milestone->status      = $request->status;
+            $milestone->cost        = $request->cost;
+            $milestone->progress    = $request->progress;
+            $milestone->due_date    = $request->duedate;
+            $milestone->start_date  = $request->start_date;
+            $milestone->description = $request->description;
+            $milestone->save();
+
+            return redirect()->back()->with('success', __('Milestone updated successfully.'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
+        }
+    }
+
+    public function milestoneDestroy($id)
+    {
+        if (\Auth::user()->can('delete milestone')) {
+            $milestone = Milestone::find($id);
+            $milestone->delete();
+
+            return redirect()->back()->with('success', __('Milestone successfully deleted.'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
+        }
+    }
+
+    public function milestoneShow($id)
+    {
+        if (\Auth::user()->can('view milestone')) {
+            $milestone = Milestone::find($id);
+
+            return view('projects.milestoneShow', compact('milestone'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
+        }
+    }
+
+    public function filterProjectView(Request $request)
+    {
+
+        if (\Auth::user()->can('manage project')) {
+            $usr           = Auth::user();
+            if (\Auth::user()->type == 'client') {
+                $user_projects = Project::where('client_id', \Auth::user()->id)->where('created_by', \Auth::user()->creatorId())->pluck('id', 'id')->toArray();;
+            } else {
+                $user_projects = $usr->projects()->pluck('project_id', 'project_id')->toArray();
+            }
+            if ($request->ajax() && $request->has('view') && $request->has('sort')) {
+                $sort     = explode('-', $request->sort);
+                $projects = Project::whereIn('id', array_keys($user_projects))->orderBy($sort[0], $sort[1]);
+
+                if (!empty($request->keyword)) {
+                    $projects->where('project_name', 'LIKE', $request->keyword . '%')->orWhereRaw('FIND_IN_SET("' . $request->keyword . '",tags)');
+                }
+                if (!empty($request->status)) {
+                    $projects->whereIn('status', $request->status);
+                }
+                $projects   = $projects->get();
+
+                $returnHTML = view('projects.' . $request->view, compact('projects', 'user_projects'))->render();
+
+                return response()->json(
+                    [
+                        'success' => true,
+                        'html' => $returnHTML,
+                    ]
+                );
+            }
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
+        }
+    }
+
+    // Project Gantt Chart
+    public function gantt($projectID, $duration = 'Week')
+    {
+        if (\Auth::user()->can('view grant chart')) {
+            $project = Project::find($projectID);
+            $tasks   = [];
+
+            if ($project) {
+                $tasksobj = $project->tasks;
+
+                foreach ($tasksobj as $task) {
+                    $tmp                 = [];
+                    $tmp['id']           = 'task_' . $task->id;
+                    $tmp['name']         = $task->name;
+                    $tmp['start']        = $task->start_date;
+                    $tmp['end']          = $task->end_date;
+                    $tmp['custom_class'] = (empty($task->priority_color) ? '#ecf0f1' : $task->priority_color);
+                    $tmp['progress']     = str_replace('%', '', $task->taskProgress()['percentage']);
+                    $tmp['extra']        = [
+                        'priority' => ucfirst(__($task->priority)),
+                        'comments' => count($task->comments),
+                        'duration' => Utility::getDateFormated($task->start_date) . ' - ' . Utility::getDateFormated($task->end_date),
+                    ];
+                    $tasks[]             = $tmp;
+                }
+            }
+
+            return view('projects.gantt', compact('project', 'tasks', 'duration'));
+        } else {
+            return redirect()->back()->with('error', __('Permission Denied.'));
+        }
+    }
+
+    public function ganttPost($projectID, Request $request)
+    {
+        $project = Project::find($projectID);
+
+        if ($project) {
+            if (\Auth::user()->can('view project task')) {
+                $id               = trim($request->task_id, 'task_');
+                $task             = ProjectTask::find($id);
+                $task->start_date = $request->start;
+                $task->end_date   = $request->end;
+                $task->save();
+
+                return response()->json(
+                    [
+                        'is_success' => true,
+                        'message' => __("Time Updated"),
+                    ],
+                    200
+                );
+            } else {
+                return response()->json(
+                    [
+                        'is_success' => false,
+                        'message' => __("You can't change Date!"),
+                    ],
+                    400
+                );
+            }
+        } else {
+            return response()->json(
+                [
+                    'is_success' => false,
+                    'message' => __("Something is wrong."),
+                ],
+                400
+            );
+        }
+    }
+
+    public function bug($project_id)
+    {
+
+
+        $user = Auth::user();
+        if ($user->can('manage bug report')) {
+            $project = Project::find($project_id);
+
+            if (!empty($project) && $project->created_by == Auth::user()->creatorId()) {
+
+                if ($user->type != 'company') {
+                    if (\Auth::user()->type == 'client') {
+                        $bugs = Bug::where('project_id', $project->id)->get();
+                    } else {
+                        $bugs = Bug::where('project_id', $project->id)->whereRaw("find_in_set('" . $user->id . "',assign_to)")->get();
+                    }
+                }
+
+                if ($user->type == 'company') {
+                    $bugs = Bug::where('project_id', '=', $project_id)->get();
+                }
+
+                return view('projects.bug', compact('project', 'bugs'));
+            } else {
+                return redirect()->back()->with('error', __('Permission denied.'));
+            }
+        } else {
+            return redirect()->back()->with('error', __('Permission denied.'));
+        }
+    }
+
+    public function bugCreate($project_id)
+    {
+        if (\Auth::user()->can('create bug report')) {
+
+            $priority     = Bug::$priority;
+            $status       = BugStatus::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('title', 'id');
+            $project_user = ProjectUser::where('project_id', $project_id)->get();
+
+
+            $users        = [];
+            foreach ($project_user as $key => $user) {
+
+                $user_data = User::where('id', $user->user_id)->first();
+                $key = $user->user_id;
+                $user_name = !empty($user_data) ? $user_data->name : '';
+                $users[$key] = $user_name;
+            }
+
+            return view('projects.bugCreate', compact('status', 'project_id', 'priority', 'users'));
+        } else {
+            return redirect()->back()->with('error', 'Permission denied.');
+        }
+    }
+
+    function bugNumber()
+    {
+        $latest = Bug::where('created_by', '=', \Auth::user()->creatorId())->latest()->first();
+        if (!$latest) {
+            return 1;
+        }
+
+        return $latest->bug_id + 1;
+    }
+
+    public function bugStore(Request $request, $project_id)
+    {
+        if (\Auth::user()->can('create bug report')) {
+            $validator = \Validator::make(
+                $request->all(),
+                [
+
+                    'title' => 'required',
+                    'priority' => 'required',
+                    'status' => 'required',
+                    'assign_to' => 'required',
+                    'start_date' => 'required',
+                    'due_date' => 'required',
+                ]
+            );
+            if ($validator->fails()) {
+                $messages = $validator->getMessageBag();
+
+                return redirect()->route('task.bug', $project_id)->with('error', $messages->first());
+            }
+
+            $usr         = \Auth::user();
+            $userProject = ProjectUser::where('project_id', '=', $project_id)->pluck('user_id')->toArray();
+            $project     = Project::where('id', '=', $project_id)->first();
+
+            $bug              = new Bug();
+            $bug->bug_id      = $this->bugNumber();
+            $bug->project_id  = $project_id;
+            $bug->title       = $request->title;
+            $bug->priority    = $request->priority;
+            $bug->start_date  = $request->start_date;
+            $bug->due_date    = $request->due_date;
+            $bug->description = $request->description;
+            $bug->status      = $request->status;
+            $bug->assign_to   = $request->assign_to;
+            $bug->created_by  = \Auth::user()->creatorId();
+            $bug->save();
+
+            ActivityLog::create(
+                [
+                    'user_id' => $usr->id,
+                    'project_id' => $project_id,
+                    'log_type' => 'Create Bug',
+                    'remark' => json_encode(['title' => $bug->title]),
+                ]
+            );
+
+            $projectArr = [
+                'project_id' => $project_id,
+                'name' => $project->name,
+                'updated_by' => $usr->id,
+            ];
+
+            return redirect()->route('task.bug', $project_id)->with('success', __('Bug successfully created.'));
+        } else {
+            return redirect()->back()->with('error', __('Permission denied.'));
+        }
+    }
+
+    public function bugEdit($project_id, $bug_id)
+    {
+        if (\Auth::user()->can('edit bug report')) {
+            $bug          = Bug::find($bug_id);
+            $priority     = Bug::$priority;
+            $status       = BugStatus::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('title', 'id');
+            $project_user = ProjectUser::where('project_id', $project_id)->get();
+            $users        = array();
+            foreach ($project_user as $user) {
+                $user_data = User::where('id', $user->user_id)->first();
+                $key = $user->user_id;
+                $user_name = !empty($user_data) ? $user_data->name : '';
+                $users[$key] = $user_name;
+            }
+
+            return view('projects.bugEdit', compact('status', 'project_id', 'priority', 'users', 'bug'));
+        } else {
+            return redirect()->back()->with('error', 'Permission denied.');
+        }
+    }
+
+    public function bugUpdate(Request $request, $project_id, $bug_id)
+    {
+
+
+        if (\Auth::user()->can('edit bug report')) {
+            $validator = \Validator::make(
+                $request->all(),
+                [
+                    'title' => 'required',
+                    'priority' => 'required',
+                    'status' => 'required',
+                    'assign_to' => 'required',
+                    'start_date' => 'required',
+                    'due_date' => 'required',
+                ]
+            );
+            if ($validator->fails()) {
+                $messages = $validator->getMessageBag();
+
+                return redirect()->route('task.bug', $project_id)->with('error', $messages->first());
+            }
+            $bug              = Bug::find($bug_id);
+            $bug->title       = $request->title;
+            $bug->priority    = $request->priority;
+            $bug->start_date  = $request->start_date;
+            $bug->due_date    = $request->due_date;
+            $bug->description = $request->description;
+            $bug->status      = $request->status;
+            $bug->assign_to   = $request->assign_to;
+            $bug->save();
+
+            return redirect()->route('task.bug', $project_id)->with('success', __('Bug successfully created.'));
+        } else {
+            return redirect()->back()->with('error', __('Permission denied.'));
+        }
+    }
+
+    public function bugDestroy($project_id, $bug_id)
+    {
+
+
+        if (\Auth::user()->can('delete bug report')) {
+            $bug = Bug::find($bug_id);
+            $bug->delete();
+
+            return redirect()->route('task.bug', $project_id)->with('success', __('Bug successfully deleted.'));
+        } else {
+            return redirect()->back()->with('error', __('Permission denied.'));
+        }
+    }
+
+    public function bugKanban($project_id)
+    {
+
+        $user = Auth::user();
+        if ($user->can('move bug report')) {
+
+            $project = Project::find($project_id);
+
+            if (!empty($project) && $project->created_by == $user->creatorId()) {
+                if ($user->type != 'company') {
+                    $bugStatus = BugStatus::where('created_by', '=', Auth::user()->creatorId())->orderBy('order', 'ASC')->get();
+                }
+
+                if ($user->type == 'company' || $user->type == 'client') {
+                    $bugStatus = BugStatus::where('created_by', '=', Auth::user()->creatorId())->orderBy('order', 'ASC')->get();
+                }
+
+                return view('projects.bugKanban', compact('project', 'bugStatus'));
+            } else {
+                return redirect()->back()->with('error', __('Permission denied.'));
+            }
+        } else {
+            return redirect()->back()->with('error', __('Permission denied.'));
+        }
+    }
+
+    public function bugKanbanOrder(Request $request)
+    {
+        //        dd($request->all());
+        if (\Auth::user()->can('move bug report')) {
+            $post   = $request->all();
+            $bug    = Bug::find($post['bug_id']);
+
+            $status = BugStatus::find($post['status_id']);
+
+            if (!empty($status)) {
+                $bug->status = $post['status_id'];
+                $bug->save();
+            }
+
+            foreach ($post['order'] as $key => $item) {
+                if ($item != 'null') {
+                    $bug_order         = Bug::find($item);
+                    if (!empty($bug_order)) {
+                        $bug_order->order  = $key;
+                        $bug_order->status = $post['status_id'];
+                        $bug_order->save();
+                    }
+                }
+            }
+        } else {
+            return redirect()->back()->with('error', 'Permission denied.');
+        }
+    }
+
+    public function bugShow($project_id, $bug_id)
+    {
+        $bug = Bug::find($bug_id);
+
+        return view('projects.bugShow', compact('bug'));
+    }
+
+    public function bugCommentStore(Request $request, $project_id, $bug_id)
+    {
+
+        $post               = [];
+        $post['bug_id']     = $bug_id;
+        $post['comment']    = $request->comment;
+        $post['created_by'] = \Auth::user()->authId();
+        $post['user_type']  = \Auth::user()->type;
+        $comment            = BugComment::create($post);
+        $comment->deleteUrl = route('bug.comment.destroy', [$comment->id]);
+
+        return response()->json(
+            [
+                'is_success' => true,
+                'message' => __("Bug comment successfully created."),
+                'data' => $comment
+            ],
+            200
+        );
+    }
+
+    public function bugCommentDestroy($comment_id)
+    {
+        $comment = BugComment::find($comment_id);
+        $comment->delete();
+
+        return "true";
+    }
+
+    public function bugCommentStoreFile(Request $request, $bug_id)
+    {
+        $request->validate(
+            ['file' => 'required']
+        );
+        $fileName = $bug_id . time() . "_" . $request->file->getClientOriginalName();
+
+        $request->file->storeAs('bugs', $fileName);
+        $post['bug_id']     = $bug_id;
+        $post['file']       = $fileName;
+        $post['name']       = $request->file->getClientOriginalName();
+        $post['extension']  = "." . $request->file->getClientOriginalExtension();
+        $post['file_size']  = round(($request->file->getSize() / 1024) / 1024, 2) . ' MB';
+        $post['created_by'] = \Auth::user()->authId();
+        $post['user_type']  = \Auth::user()->type;
+
+        $BugFile            = BugFile::create($post);
+        $BugFile->deleteUrl = route('bug.comment.file.destroy', [$BugFile->id]);
+
+        return $BugFile->toJson();
+    }
+
+    public function bugCommentDestroyFile(Request $request, $file_id)
+    {
+        $commentFile = BugFile::find($file_id);
+        $path        = storage_path('bugs/' . $commentFile->file);
+        if (file_exists($path)) {
+            \File::delete($path);
+        }
+        $commentFile->delete();
+
+        return "true";
+    }
+
+    public function tracker($id)
+    {
+        $treckers = TimeTracker::where('project_id', $id)->get();
+        return view('time_trackers.index', compact('treckers'));
+    }
+
+    public function getProjectChart($arrParam)
+    {
+        $arrDuration = [];
+        if ($arrParam['duration'] && $arrParam['duration'] == 'week') {
+            $previous_week = Utility::getFirstSeventhWeekDay(-1);
+            foreach ($previous_week['datePeriod'] as $dateObject) {
+                $arrDuration[$dateObject->format('Y-m-d')] = $dateObject->format('D');
+            }
+        }
+
+        $arrTask = [
+            'label' => [],
+            'color' => [],
+        ];
+        $stages = TaskStage::where('created_by', '=', $arrParam['created_by'])->orderBy('order');
+
+        foreach ($arrDuration as $date => $label) {
+            $objProject = projectTask::select('stage_id', \DB::raw('count(*) as total'))->whereDate('updated_at', '=', $date)->groupBy('stage_id');
+
+            if (isset($arrParam['project_id'])) {
+                $objProject->where('project_id', '=', $arrParam['project_id']);
+            }
+
+
+            $data = $objProject->pluck('total', 'stage_id')->all();
+
+            foreach ($stages->pluck('name', 'id')->toArray() as $id => $stage) {
+                $arrTask[$id][] = isset($data[$id]) ? $data[$id] : 0;
+            }
+            $arrTask['label'][] = __($label);
+        }
+        $arrTask['stages'] = $stages->pluck('name', 'id')->toArray();
+
+        return $arrTask;
+    }
+
+    //project duplicate module
+    public function copyproject($id)
+    {
+        if (Auth::user()->can('create project')) {
+            $project = Project::find($id);
+
+            return view('projects.copy', compact('project'));
+        } else {
+            return response()->json(['error' => __('Permission denied.')], 401);
+        }
+    }
+
+    public function copyprojectstore(Request $request, $id)
+    {
+
+        if (Auth::user()->can('create project')) {
+            $project                            = Project::find($id);
+            $duplicate                          = new Project();
+            $duplicate['project_name']          = $project->project_name;
+            $duplicate['status']                = $project->status;
+            $duplicate['project_image']         = $project->project_image;
+            $duplicate['client_id']             = $project->client_id;
+            $duplicate['description']           = $project->description;
+            $duplicate['start_date']            = $project->start_date;
+            $duplicate['end_date']              = $project->end_date;
+            $duplicate['estimated_hrs']         = $project->estimated_hrs;
+            $duplicate['created_by']            = \Auth::user()->creatorId();
+            $duplicate->save();
+
+
+
+            if (isset($request->user) && in_array("user", $request->user)) {
+                $users = ProjectUser::where('project_id', $project->id)->get();
+                foreach ($users as $user) {
+                    $users = new ProjectUser();
+                    $users['user_id'] = $user->user_id;
+                    $users['project_id'] = $duplicate->id;
+                    $users->save();
+                }
+            } else {
+                $objUser = Auth::user();
+                $users              = new ProjectUser();
+                $users['user_id']   = $objUser->id;
+                $users['project_id'] = $duplicate->id;
+                $users->save();
+            }
+
+
+            if (isset($request->task) && in_array("task", $request->task)) {
+
+                $tasks = ProjectTask::where('project_id', $project->id)->get();
+
+                foreach ($tasks as $task) {
+                    $project_task                   = new ProjectTask();
+                    $project_task['name']           = $task->name;
+                    $project_task['description']    = $task->description;
+                    $project_task['estimated_hrs']  = $task->estimated_hrs;
+                    $project_task['start_date']     = $task->start_date;
+                    $project_task['end_date']       = $task->end_date;
+                    $project_task['priority']       = $task->priority;
+                    $project_task['priority_color'] = $task->priority_color;
+                    $project_task['assign_to']      = $task->assign_to;
+                    $project_task['project_id']     = $duplicate->id;
+                    $project_task['milestone_id']   = $task->milestone_id;
+                    $project_task['stage_id']       = $task->stage_id;
+                    $project_task['order']          = $task->order;
+                    $project_task['created_by']     = \Auth::user()->creatorId();
+                    $project_task['is_favourite']   = $task->is_favourite;
+                    $project_task['is_complete']    = $task->is_complete;
+                    $project_task['marked_at']      = $task->marked_at;
+                    $project_task['progress']       = $task->progress;
+                    $project_task->save();
+
+
+                    if (in_array("task_comment", $request->task)) {
+                        $task_comments = TaskComment::where('task_id', $task->id)->get();
+                        foreach ($task_comments as $task_comment) {
+                            $comment                = new TaskComment();
+                            $comment['comment']     = $task_comment->comment;
+                            $comment['task_id']     = $project_task->id;
+                            $comment['user_id']     = !empty($task_comment) ? $task_comment->user_id : 0;
+                            $comment['user_type']   = $task_comment->user_type;
+                            $comment['created_by']  = $task_comment->created_by;
+                            $comment->save();
+                        }
+                    }
+                    if (in_array("task_files", $request->task)) {
+                        $task_files = TaskFile::where('task_id', $task->id)->get();
+                        foreach ($task_files as $task_file) {
+                            $file               = new TaskFile();
+                            $file['file']       = $task_file->file;
+                            $file['name']       = $task_file->name;
+                            $file['extension']  = $task_file->extension;
+                            $file['file_size']  = $task_file->file_size;
+                            $file['created_by'] = $task_file->created_by;
+                            $file['task_id']    = $project_task->id;
+                            $file['user_type']  = $task_file->user_type;
+                            $file->save();
+                        }
+                    }
+                }
+            }
+            if (isset($request->bug) && in_array("bug", $request->bug)) {
+                $bugs = Bug::where('project_id', $project->id)->get();
+
+                foreach ($bugs as $bug) {
+                    $project_bug                   = new Bug();
+                    $project_bug['bug_id']          = $bug->bug_id;
+                    $project_bug['project_id']     = $duplicate->id;
+                    $project_bug['title']          = $bug->title;
+                    $project_bug['priority']       = $bug->priority;
+                    $project_bug['start_date']          = $bug->start_date;
+                    $project_bug['due_date']          = $bug->due_date;
+                    $project_bug['description']    = $bug->description;
+                    $project_bug['status']         = $bug->status;
+                    $project_bug['order']          = $bug->order;
+                    $project_bug['assign_to']      = $bug->assign_to;
+                    $project_bug['created_by']         = \Auth::user()->creatorId();
+                    $project_bug->save();
+
+                    if (in_array("bug_comment", $request->bug)) {
+                        $bug_comments = BugComment::where('bug_id', $bug->id)->get();
+                        foreach ($bug_comments as $bug_comment) {
+                            $bugcomment                 = new BugComment();
+                            $bugcomment['comment']      = $bug_comment->comment;
+                            $bugcomment['bug_id']       = $project_bug->id;
+                            $bugcomment['user_type']    = $bug_comment->user_type;
+                            $bugcomment['created_by']   = $bug_comment->created_by;
+                            $bugcomment->save();
+                        }
+                    }
+                    if (in_array("bug_files", $request->bug)) {
+                        $bug_files = BugFile::where('bug_id', $bug->id)->get();
+
+                        foreach ($bug_files as $bug_file) {
+                            $bugfile               = new BugFile();
+                            $bugfile['file']       = $bug_file->file;
+                            $bugfile['name']       = $bug_file->name;
+                            $bugfile['extension']  = $bug_file->extension;
+                            $bugfile['file_size']  = $bug_file->file_size;
+                            $bugfile['bug_id']     = $project_bug->id;
+                            $bugfile['user_type']  = $bug_file->user_type;
+                            $bugfile['created_by'] = $bug_file->created_by;
+                            $bugfile->save();
+                        }
+                    }
+                }
+            }
+            if (isset($request->milestone) && in_array("milestone", $request->milestone)) {
+                $milestones = Milestone::where('project_id', $project->id)->get();
+
+                foreach ($milestones as $milestone) {
+                    $post                   = new Milestone();
+                    $post['project_id']     = $duplicate->id;
+                    $post['title']          = $milestone->title;
+                    $post['status']         = $milestone->status;
+                    $post['due_date']       = $milestone->due_date;
+                    $post['start_date']     = $milestone->start_date;
+                    $post['cost']           = $milestone->cost;
+                    $post['progress']       = $milestone->progress;
+                    $post->save();
+                }
+            }
+            if (isset($request->project_file) && in_array("project_file", $request->project_file)) {
+                $project_files = TaskFile::where('task_id', $task->id)->get();
+                //                dd($project_files);
+                foreach ($project_files as $project_file) {
+                    $ProjectFile                = new TaskFile();
+                    $ProjectFile['task_id']  = $duplicate->id;
+                    $ProjectFile['file']   = $project_file->file;
+                    $ProjectFile['name']   = $project_file->name;
+                    $ProjectFile['extension']   = $project_file->extension;
+                    $ProjectFile['file_size']   = $project_file->file_size;
+                    $ProjectFile['user_type']   = $project_file->user_type;
+                    $ProjectFile['created_by']   = $project_file->created_by;
+                    $ProjectFile->save();
+                }
+            }
+            if (isset($request->activity) && in_array('activity', $request->activity)) {
+                $where_in_array = [];
+                if (isset($request->milestone) && in_array("milestone", $request->milestone)) {
+                    array_push($where_in_array, "Create Milestone");
+                }
+                if (isset($request->task) && in_array("task", $request->task)) {
+                    array_push($where_in_array, "Create Task", "Move");
+                }
+                if (isset($request->bug) && in_array("bug", $request->bug)) {
+                    array_push($where_in_array, "Create Bug", "Move Bug");
+                }
+                //                if(isset($request->client) && in_array("client", $request->client))
+                //                {
+                //                    array_push($where_in_array,"Share with Client");
+                //                }
+                if (isset($request->user) && in_array("user", $request->user)) {
+                    array_push($where_in_array, "Invite User");
+                }
+                if (isset($request->project_file) && in_array("project_file", $request->project_file)) {
+                    array_push($where_in_array, "Upload File");
+                }
+                if (count($where_in_array) > 0) {
+                    $activities = ActivityLog::where('project_id', $project->id)->whereIn('log_type', $where_in_array)->get();
+
+                    foreach ($activities as $activity) {
+                        $activitylog                = new ActivityLog();
+                        $activitylog['user_id']     = $activity->user_id;
+                        $activitylog['project_id']  = $duplicate->id;
+                        $activitylog['project_id']  = $duplicate->id;
+                        $activitylog['log_type']    = $activity->log_type;
+                        $activitylog['remark']      = $activity->remark;
+                        $activitylog->save();
+                    }
+                }
+            }
+            return redirect()->back()->with('success', 'Project Created Successfully');
+        } else {
+            return redirect()->back()->with('error', 'permission Denied');
+        }
+    }
+
+    //share project module
+
+    public function copylink_setting_create($projectID)
+    {
+        $objUser = Auth::user();
+        $project = Project::select('projects.*')->join('project_users', 'projects.id', '=', 'project_users.project_id')->where('project_users.user_id', '=', $objUser->id)->where('projects.id', '=', $projectID)->first();
+        $result = json_decode($project->copylinksetting);
+        return view('projects.copylink_setting', compact('project', 'projectID', 'result'));
+    }
+
+    public function copylinksetting(Request $request, $id)
+    {
+        $objUser = Auth::user();
+
+        $data = [];
+        $data['basic_details']  = isset($request->basic_details) ? 'on' : 'off';
+        $data['member']  = isset($request->member) ? 'on' : 'off';
+        $data['milestone']  = isset($request->milestone) ? 'on' : 'off';
+        $data['client']  = isset($request->client) ? 'on' : 'off';
+        $data['progress']  = isset($request->progress) ? 'on' : 'off';
+        $data['activity']  = isset($request->activity) ? 'on' : 'off';
+        $data['attachment']  = isset($request->attachment) ? 'on' : 'off';
+        $data['bug_report']  = isset($request->bug_report) ? 'on' : 'off';
+        $data['expense']  = isset($request->expense) ? 'on' : 'off';
+        $data['task']  = isset($request->task) ? 'on' : 'off';
+        $data['tracker_details']  = isset($request->tracker_details) ? 'on' : 'off';
+        $data['timesheet']  = isset($request->timesheet) ? 'on' : 'off';
+        $data['password_protected']  = isset($request->password_protected) ? 'on' : 'off';
+        $project = Project::select('projects.*')
+            ->join('project_users', 'projects.id', '=', 'project_users.project_id')
+            ->where('project_users.user_id', '=', $objUser->id)
+            ->where('projects.id', '=', $id)->first();
+
+        if (isset($request->password_protected) && $request->password_protected == 'on') {
+            $project->password = base64_encode($request->password);
+        } else {
+            $project->password = null;
+        }
+
+
+        $project->copylinksetting = (count($data) > 0) ? json_encode($data) : null;
         $project->save();
-        Notification::send(User::whereIn('id', $request->employee_id)->get(), new NotificationsTaskAssign($project->task_name, 'New Task Assigned'));
-        foreach ($request->employee_id as $employee_id) {
-            $assign = new TaskAssign();
-            $assign->task_id = $project->id;
-            $assign->employee_id = $employee_id;
-            $assign->project_id = $project->project_id;
-            $assign->employee_hours = $employee_id;
-            $assign->save();
+        return redirect()->back()->with('success', __('Copy Link Setting Save Successfully!'));
+    }
+
+    public function projectlink(Request $request, $project_id, $lang = '')
+    {
+        try {
+            $id = \Illuminate\Support\Facades\Crypt::decrypt($project_id);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', __('Project Not Found.'));
         }
 
-        return redirect('projects-task')->with('project', 'Project created successfully');
-    }
-    // public function taskStore(Request $request)
-    // {
-    //     // Create the main task
-    //     $project = new Task();
-    //     $project->task_name = $request->task_name;
-    //     $project->estimate_hours = $request->estimate_hours;
-    //     $project->status = $request->status;
-    //     $project->project_id = $request->project_id;
-    //     $project->sdate = $request->sdate;
-    //     $project->edate = $request->edate;
-    //     $project->status = 0;
-    //     $project->save();
+        $id = \Illuminate\Support\Facades\Crypt::decrypt($project_id);
 
-    //     // Notify assigned employees about the new task
-    //     Notification::send(User::whereIn('id', $request->employee_id)->get(), new NotificationsTaskAssign($project->task_name, 'New Task Assigned'));
+        $project = Project::find($id);
 
-    //     // Assign the main task to employees
-    //     foreach ($request->employee_id as $employee_id) {
-    //         $assign = new TaskAssign();
-    //         $assign->task_id = $project->id;
-    //         $assign->employee_id = $employee_id;
-    //         $assign->project_id = $project->project_id;
-    //         $assign->employee_hours = $employee_id;
-    //         $assign->save();
-    //     }
-
-    //     // AUTOMATICALLY ASSIGN NON-BILLABLE TASK FROM `taskcategory`
-    //     // Check if a NON-BILLABLE category exists in the taskcategory table
-    //     $nonBillableCategory = TaskCategory::where('tname', 'NON-BILLABLE')->first();
-
-    //     if ($nonBillableCategory) {
-    //         // Create a NON-BILLABLE task for the project, linked to the taskcategory
-    //         $nonBillableTask = new Task();
-    //         $nonBillableTask->task_name = 'NON-BILLABLE';
-    //         $nonBillableTask->estimate_hours = 0; // Or define a default value
-    //         $nonBillableTask->status = 0;
-    //         $nonBillableTask->project_id = $project->project_id;
-    //         // $nonBillableTask->task_category_id = $nonBillableCategory->id; // Link the task to NON-BILLABLE category
-    //         $nonBillableTask->sdate = $project->sdate; // Same start date as main task
-    //         $nonBillableTask->edate = $project->edate; // Same end date as main task
-    //         $nonBillableTask->save();
-
-    //         // Assign the NON-BILLABLE task to the same employees
-    //         foreach ($request->employee_id as $employee_id) {
-    //             $nonBillableAssign = new TaskAssign();
-    //             $nonBillableAssign->task_id = $nonBillableTask->id;
-    //             $nonBillableAssign->employee_id = $employee_id;
-    //             $nonBillableAssign->project_id = $nonBillableTask->project_id;
-    //             $nonBillableAssign->employee_hours = 0; // No hours initially assigned
-    //             $nonBillableAssign->save();
-    //         }
-    //     }
-
-    //     return redirect('projects-task')->with('project', 'Project created successfully, including NON-BILLABLE task.');
-    // }
+        $data = [];
+        $data['basic_details']  = isset($request->basic_details) ? 'on' : 'off';
+        $data['member']  = isset($request->member) ? 'on' : 'off';
+        $data['milestone']  = isset($request->milestone) ? 'on' : 'off';
+        $data['activity']  = isset($request->activity) ? 'on' : 'off';
+        $data['attachment']  = isset($request->attachment) ? 'on' : 'off';
+        $data['bug_report']  = isset($request->bug_report) ? 'on' : 'off';
+        $data['expense']  = isset($request->expense) ? 'on' : 'off';
+        $data['task']  = isset($request->task) ? 'on' : 'off';
+        $data['tracker_details']  = isset($request->tracker_details) ? 'on' : 'off';
+        $data['timesheet']  = isset($request->timesheet) ? 'on' : 'off';
+        $data['password_protected']  = isset($request->password_protected) ? 'on' : 'off';
 
 
-    public function Taskedit(Project $project, $id)
-    {
-        $project = Task::with('assignments.employee')->findOrFail($id);
-        $userss = Auth::user();
-        $user = Auth::user()->name;
-        if ($userss) {
-            // Ensure permissions are assigned and fetched correctly
-            $user_type = $userss->getAllPermissions()->pluck('name')->toArray();
-            // dd($permissions);
-        }
-        $projects = Project::all();
-        $employees = User::all(); // Assuming employees are users
-        $notif = Auth::user()->notifications;
-        return Inertia::render('projects/task-edit', [
-            'project' => $project,
-            'employees' => $employees,
-            'projects' => $projects,
-            'user' => $user,
-            'user_type' => $user_type,
-            'notif' => $notif,
-        ]);
-    }
-
-    public function Taskupdate(Request $request, $id)
-    {
-        // dd($request->all());
-        $task = Task::findOrFail($id);
-
-        // Update task properties
-        $task->task_name = $request->task_name;
-        $task->estimate_hours = $request->estimate_hours;
-        $task->status = $request->status;
-        // $task->project_id = $request->project_id;
-        $task->sdate = $request->sdate;
-        $task->edate = $request->edate;
-        $task->save();
-        Notification::send(User::whereIn('id', $request->employee_id)->get(), new NotificationsTaskAssign($task->task_name, 'New Task Assigned'));
-        // Update task assignments
-        // First, delete the existing assignments
-        TaskAssign::where('task_id', $id)->delete();
-
-        // Then, create new assignments based on the updated employee IDs
-        foreach ($request->employee_id as $employee_id) {
-            $assign = new TaskAssign();
-            $assign->task_id = $task->id;
-            $assign->employee_id = $employee_id;
-            $assign->employee_hours = $request->employee_hours[$employee_id] ?? 0;
-            $assign->save();
-            //            dd($assign);
-        }
-        return redirect('projects-task');
-    }
-    public function Taskdestroy($id)
-    {
-        $project = Task::findOrFail($id);
-        $project->delete();
-        return redirect()->route('projects')->with('success', 'Task and related task assign deleted successfully.');
-    }
-
-    public function Tskcategory()
-    {
-        $taskcategory = TaskCategory::all();
-        $userss = Auth::user();
-        $user = Auth::user()->name;
-        if ($userss) {
-            // Ensure permissions are assigned and fetched correctly
-            $user_type = $userss->getAllPermissions()->pluck('name')->toArray();
-            // dd($permissions);
-        }
-        $notif = Auth::user()->notifications;
-        return Inertia::render('projects/taskCategory', compact('taskcategory', 'user', 'user_type', 'notif'));
-    }
-
-    public function TaskcategoryStore(Request $request)
-    {
-        // dd($request->all());
-        // dd($request->all());
-        $taskcategory = new TaskCategory();
-        $taskcategory->tname = $request->tname;
-        $taskcategory->save();
-        return back()->with('taskcategory', 'Task Category created successfully');
-    }
-    public function TaskcategoryEdit(TaskCategory $taskcategory, $id) {}
-    public function TaskcategoryUpdate(Request $request, $id)
-    {
-        $taskcategory =  TaskCategory::find($id);
-        $taskcategory->tname = $request->tname;
-        $taskcategory->save();
-        return back()->with('taskcategory', 'Task Category Updated successfully');
-    }
-    public function TaskcategoryDestroy($id)
-    {
-        $taskcategory = TaskCategory::find($id);
-        $taskcategory->delete();
-        return back()->with('taskcategory', 'Task Category deleted successfully');
-    }
-
-    public function Taskassign()
-    {
-
-        $userss = Auth::user();
-
-        $user = Auth::user()->name;
-        if ($userss) {
-            // Ensure permissions are assigned and fetched correctly
-            $user_type = $userss->getAllPermissions()->pluck('name')->toArray();
-            // dd($permissions);
-        }
-        $usr = Auth::user()->type;
-
-        if (Auth::user()->can('view_assign')) {
-            // If the user has permission to view all tasks, show all tasks
-            $projects = Task::join('projects', 'projects.id', '=', 'tasks.project_id')
-                ->join('task_assigns', 'task_assigns.task_id', '=', 'tasks.id')
-                ->join('users', 'users.id', '=', 'task_assigns.employee_id')
-                ->select('tasks.task_name', 'projects.title', 'tasks.status', 'tasks.id', 'users.name', 'task_assigns.employee_hours')
-                ->get();
+        if (Auth::user() != null) {
+            $usr         = Auth::user();
         } else {
-            // If the user can only view their own tasks, filter by the logged-in user's ID
-            $projects = Task::join('projects', 'projects.id', '=', 'tasks.project_id')
-                ->join('task_assigns', 'task_assigns.task_id', '=', 'tasks.id')
-                ->join('users', 'users.id', '=', 'task_assigns.employee_id')
-                ->select('tasks.task_name', 'projects.title', 'tasks.status', 'tasks.id', 'task_assigns.employee_hours')
-                ->where('task_assigns.employee_id', Auth::user()->id)
-                ->get();
+            $usr         = User::where('id', $project->created_by)->first();
         }
 
-        $status = TaskStatus::all();
-        $notif = Auth::user()->notifications;
-        // dd($projects);
-        return Inertia::render('projects/taskassign', compact('projects', 'user', 'user_type', 'notif', 'status'));
-    }
+        $user_projects = $usr->projects->pluck('id')->toArray();
 
-    public function changeStatus(Request $request, $id)
-    {
-        // Validate the request data
-        // dd($request->all());
+        $project_data = [];
 
-        // Find the task by ID
-        $task = Task::find($id);
+        // Task Count
+        $project_task         = $project->tasks->count();
 
-        if ($task) {
-            // Assign the validated status value to the task
-            $task->status = $request->status;
-            $task->save();
+        $project_done_task    = $project->tasks->where('is_complete', '=', 1)->count();
 
-            // Return a success response
-            return back();
+        $project_data['task'] = [
+            'total' => number_format($project_task),
+            'done' => number_format($project_done_task),
+            'percentage' => Utility::getPercentage($project_done_task, $project_task),
+        ];
+
+        // end Task Count
+
+
+        // Users Assigned
+        $total_users = User::where('created_by', '=', $usr->id)->count();
+
+        $project_data['user_assigned'] = [
+            'total' => number_format($total_users) . '/' . number_format($total_users),
+            'percentage' => Utility::getPercentage($total_users, $total_users),
+        ];
+        // End Users Assigned
+
+
+        // Day left
+        $total_day   = Carbon::parse($project->start_date)->diffInDays(Carbon::parse($project->end_date));
+        $remaining_day = Carbon::parse($project->start_date)->diffInDays(now());
+        $project_data['day_left'] = [
+            'day' => number_format($remaining_day) . '/' . number_format($total_day),
+            'percentage' => Utility::getPercentage($remaining_day, $total_day),
+        ];
+        // end day left
+
+        if ($usr->checkProject($project->id) == 'Owner') {
+            $remaining_task = ProjectTask::where('project_id', '=', $project->id)->where('is_complete', '=', 0)->count();
+            $total_task     = ProjectTask::where('project_id', '=', $project->id)->count();
         } else {
-            // Return an error if the task is not found
-            return response()->json(['message' => 'Task not found'], 404);
+            $remaining_task = ProjectTask::where('project_id', '=', $project->id)->where('is_complete', '=', 0)->whereRaw("find_in_set('" . $usr->id . "',assign_to)")->count();
+            $total_task     = ProjectTask::where('project_id', '=', $project->id)->whereRaw("find_in_set('" . $usr->id . "',assign_to)")->count();
         }
-    }
+        $project_data['open_task'] = [
+            'tasks' => number_format($remaining_task) . '/' . number_format($total_task),
+            'percentage' => Utility::getPercentage($remaining_task, $total_task),
+        ];
 
-    public function TaskStatus()
-    {
-        $status = TaskStatus::all();
-        $userss = Auth::user();
+        // Milestone
+        $total_milestone           = $project->milestones()->count();
 
-        $user = Auth::user()->name;
-        if ($userss) {
-            // Ensure permissions are assigned and fetched correctly
-            $user_type = $userss->getAllPermissions()->pluck('name')->toArray();
-            // dd($permissions);
+        $complete_milestone        = $project->milestones()->where('status', 'LIKE', 'complete')->count();
+        $project_data['milestone'] = [
+            'total' => number_format($complete_milestone) . '/' . number_format($total_milestone),
+            'percentage' => Utility::getPercentage($complete_milestone, $total_milestone),
+        ];
+        // End Milestone
+
+
+        // Chart
+        $seven_days      = Utility::getLastSevenDays();
+        $chart_task      = [];
+        $chart_timesheet = [];
+        $cnt             = 0;
+        $cnt1            = 0;
+
+        foreach (array_keys($seven_days) as $k => $date) {
+            if ($usr->checkProject($project->id) == 'Owner') {
+                $task_cnt     = $project->tasks()->where('is_complete', '=', 1)->where('marked_at', 'LIKE', $date)->count();
+                $arrTimesheet = $project->timesheets()->where('date', 'LIKE', $date)->pluck('time')->toArray();
+            } else {
+                $task_cnt     = $project->tasks()->where('is_complete', '=', 1)->whereRaw("find_in_set('" . $usr->id . "',assign_to)")->where('marked_at', 'LIKE', $date)->count();
+                $arrTimesheet = $project->timesheets()->where('created_by', '=', $usr->id)->where('date', 'LIKE', $date)->pluck('time')->toArray();
+            }
+
+            // Task Chart Count
+            $cnt += $task_cnt;
+
+            // Timesheet Chart Count
+            $timesheet_cnt = str_replace(':', '.', Utility::timeToHr($arrTimesheet));
+            $cn[]          = $timesheet_cnt;
+            $cnt1          += number_format($timesheet_cnt, 2);
+
+            $chart_task[]      = $task_cnt;
+            $chart_timesheet[] = number_format($timesheet_cnt, 2);
         }
-        $usr = Auth::user()->type;
-        return Inertia::render('projects/taskStatus', compact('status', 'userss', 'user', 'user_type', 'usr'));
-    }
-    public function taskstatusstore(Request $request)
-    {
-        $request->validate([
-            'status_name' => 'required|string|max:255',
-        ]);
 
-        TaskStatus::create([
-            'status_name' => $request->status_name,
-        ]);
+        // Allocated Hours
+        $hrs                                = Project::projectHrs($project->id);
 
-        return redirect()->back()->with('success', 'Task Status created successfully.');
-    }
 
-    public function taskstatuupdate(Request $request, $id)
-    {
-        $request->validate([
-            'status_name' => 'required|string|max:255',
-        ]);
+        $project_data['task_allocated_hrs'] = [
+            'hrs' => number_format($hrs['allocated']) . '/' . number_format($hrs['allocated']),
+            'percentage' => Utility::getPercentage($hrs['allocated'], $hrs['allocated']),
+        ];
 
-        $status = TaskStatus::findOrFail($id);
-        $status->update([
-            'status_name' => $request->status_name,
-        ]);
+        // end allocated hours
 
-        return redirect()->back()->with('success', 'Task Status updated successfully.');
-    }
+        // Time spent
+        if ($usr->checkProject($project->id) == 'Owner') {
+            $times = $project->timesheets->pluck('time')->toArray();
+        } else {
+            $times = $project->timesheets()->where('created_by', '=', $usr->id)->pluck('time')->toArray();
+        }
+        $totaltime                  = str_replace(':', '.', Utility::timeToHr($times));
+        $estimatedtime              = $project->estimated_hrs != '' ? $project->estimated_hrs : '0';
+        $project_data['time_spent'] = [
+            'total' => number_format($totaltime) . '/' . number_format($estimatedtime),
+            'percentage' => Utility::getPercentage(number_format($totaltime), $estimatedtime),
+        ];
+        // end time spent
 
-    public function taskstatudestroy($id)
-    {
-        $status = TaskStatus::findOrFail($id);
-        $status->delete();
+        $project_data['task_chart']      = [
+            'chart' => $chart_task,
+            'total' => $cnt,
+        ];
 
-        return redirect()->back()->with('success', 'Task Status deleted successfully.');
-    }
+        $project_data['timesheet_chart'] = [
+            'chart' => $chart_timesheet,
+            'total' => $cnt1,
+        ];
+        if (isset($request->milestone) && in_array("milestone", $request->milestone)) {
+            $milestones = Milestone::where('project_id', $project->id)->get();
 
-    public function getTotalTaskHours($projectId)
-    {
-        // Fetch the total hours for all tasks under the project
-        $totalHours = Task::where('project_id', $projectId)->sum('estimate_hours');
+            foreach ($milestones as $milestone) {
 
-        return response()->json([
-            'total_hours' => $totalHours,
-        ]);
+                $post                   = new Milestone();
+                $post['project_id']     = $milestone->id;
+                $post['title']          = $milestone->title;
+                $post['status']         = $milestone->status;
+                $post['description']    = $milestone->description;
+                $post->save();
+            }
+        }
+
+        if (isset($request->task) && in_array("task", $request->task)) {
+            $tasks = ProjectTask::where('project_id', $project->id)->where('stage_id', $stage->id)->get();
+            $activities = ActivityLog::where('project_id', $project->id)->where('task_id', $task->id)->get();
+
+            foreach ($activities as $activity) {
+
+                $activitylog                = new ActivityLog();
+                $activitylog['user_id']     = $activity->user_id;
+                $activitylog['project_id']  = $activity->id;
+                $activitylog['task_id']     = $activity->id;
+                $activitylog['log_type']    = $activity->log_type;
+                $activitylog['remark']      = $activity->remark;
+                $activitylog->save();
+            }
+        }
+
+        $stages = TaskStage::where('project_id', '=', $id)->orderBy('order')->get();
+        foreach ($stages as &$status) {
+            $stageClass[] = 'task-list-' . $status->id;
+            $task = ProjectTask::where('project_id', '=', $id);
+
+            // check project is shared or owner
+            if ($usr->checkProject($project_id) == 'Shared') {
+                $task->whereRaw(
+                    "find_in_set('" . $usr->id . "',assign_to)"
+                );
+            }
+            //end
+
+            $task->orderBy('order');
+            $status['tasks'] = $task->where('stage_id', '=', $status->id)->get();
+        }
+
+        $treckers = TimeTracker::where('project_id', $id)->where('created_by', $usr->id)->get();
+
+        //bug report
+
+        $bugs = Bug::where('project_id', $project->id)->get();
+
+
+        //task
+        $tasks = ProjectTask::where('project_id', $project->id)->get();
+
+        //lang
+
+
+        $lang = !empty($lang) ? $lang : (!empty($usr->lang) ? $usr->lang : env('DEFAULT_ADMIN_LANG'));
+
+        \App::setLocale($lang);
+
+        //        dd($lang);
+
+
+
+        if (\Session::get('copy_pass_true' . $id) == $project->password . '-' . $id) {
+
+            return view('projects.copylink', compact('data', 'project', 'project_data', 'stages', 'treckers', 'usr', 'bugs', 'tasks', 'lang'));
+        } else {
+
+            if (!isset(json_decode($project->copylinksetting)->password_protected) || json_decode($project->copylinksetting)->password_protected != 'on') {
+
+                return view('projects.copylink', compact('data', 'project', 'project_data', 'stages', 'treckers', 'usr', 'lang', 'tasks', 'bugs'));
+            } elseif (isset(json_decode($project->copylinksetting)->password_protected) && json_decode($project->copylinksetting)->password_protected == 'on' && $request->password == base64_decode($project->password)) {
+
+                \Session::put('copy_pass_true' . $id, $project->password . '-' . $id);
+
+
+                return view('projects.copylink', compact('data', 'project', 'project_data', 'stages', 'treckers', 'usr', 'lang', 'bugs', 'tasks'));
+            } else {
+
+
+                return view('projects.copylink_password', compact('id'));
+            }
+        }
     }
 }
