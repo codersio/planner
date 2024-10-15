@@ -31,7 +31,7 @@ const Nav = ({ user_type }) => {
         { name: 'leave management', link: "/leave-index" },
         { name: 'employee setup', link: "/branches" },
         { name: 'attendance', link: "/attendance" },
-
+        { name:'payroll',link:'/payroll' }
     ]
 
     return (

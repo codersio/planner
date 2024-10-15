@@ -200,7 +200,7 @@ Route::resource('payslips', PaySlipController::class);
 Route::resource('documents', DocumentController::class);
 // Route::get('attendances', [AttendanceController::class, 'index']);
 Route::resource('attendances', AttendanceController::class);
-
+Route::get('/payroll',[ReportController::class,'payroll']);
 
 Route::get('/salaries', [SalaryController::class, 'index']);
 Route::post('/generate-salary', [SalaryController::class, 'generateForAll']);
