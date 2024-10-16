@@ -22,14 +22,9 @@ use App\Http\Controllers\TimesheetController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignatonController;
-<<<<<<< Updated upstream
-use App\Http\Controllers\DocumentController;
-use App\Http\Controllers\EmpolyeeSetupController;
 use App\Http\Controllers\ExpenseController;
-=======
 use App\Http\Controllers\LeadSourceController;
 use App\Http\Controllers\DailyStatusController;
->>>>>>> Stashed changes
 use App\Http\Controllers\HolidayWorkController;
 use App\Http\Controllers\EmpolyeeSetupController;
 use App\Http\Controllers\LeaveManagementController;
