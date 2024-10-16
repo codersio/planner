@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
@@ -19,6 +20,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignatonController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmpolyeeSetupController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\HolidayWorkController;
 use App\Http\Controllers\LeaveManagementController;
 use App\Http\Controllers\NotificationAllController;
@@ -134,9 +136,9 @@ Route::post('/project-task-status/{id}', [ProjectController::class, 'changestatu
 Route::get('/reports', [ReportController::class, 'index']);
 Route::get('/reports-get', [ReportController::class, 'reportView'])->name('reports-get');
 Route::post('/task-store', [ProjectController::class, 'taskStore']);
-Route::get('/taskcalendar',[ProjectController::class,'taskcalendar']);
+Route::get('/taskcalendar', [ProjectController::class, 'taskcalendar']);
 Route::get('/timesheets/{week}', [TimesheetController::class, 'index']);
-Route::get('/taskcalendar',[ProjectController::class,'taskcalendar']);
+Route::get('/taskcalendar', [ProjectController::class, 'taskcalendar']);
 
 Route::get('/timesheets/{timesheet}', [TimesheetController::class, 'show']);
 Route::put('/timesheets/{timesheet}', [TimesheetController::class, 'update']);
@@ -209,3 +211,9 @@ Route::post('/payroll/store/{id}', [ReportController::class, 'payrollStore']);
 Route::get('/salaries', [SalaryController::class, 'index']);
 Route::post('/generate-salary', [SalaryController::class, 'generateForAll']);
 Route::resource('/clients', ClientController::class,);
+Route::get('/tax', [AccountController::class, 'tax']);
+Route::post('/tax-store', [AccountController::class, 'taxstore']);
+Route::put('/tax-update/{tax}', [AccountController::class, 'taxupdate']);
+Route::delete('/tax-delete/{tax}', [AccountController::class, 'taxdestroy']);
+Route::get('/expense', [ExpenseController::class, 'index']);
+Route::get('/account/category', [AccountController::class, 'AccountCategory']);
