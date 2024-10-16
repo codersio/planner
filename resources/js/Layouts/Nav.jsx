@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
-import { FaUserCircle, FaTasks, FaUsers } from "react-icons/fa";
+import { FaUserCircle, FaTasks, FaUsers, FaDesktop } from "react-icons/fa";
 import { GoProjectSymlink } from "react-icons/go";
 import { IoTimeOutline } from "react-icons/io5";
 import { MdOutlineReport } from "react-icons/md";
@@ -137,6 +137,7 @@ const Nav = ({ user_type }) => {
                     <DropdownMenu icon={<FaFolderClosed />} name={'Project Management'} items={[{name:'Projects',link:'/projects'},{name:'Tasks',link:'/projects-task'},{name:'Task Calendar',link:'/taskcalendar'},{name:'Reports',link:'/reports-get'}]} />
                     {/* <DropdownMenu icon={<FaUsers />} name={'User Management'} items={[{name:'User',link:'#'},{name:'Client',link:'#'},{name:'Agent',link:'#'}]} /> */}
                     <DropdownMenu icon={<FaUsers />} name={'User Management'} items={[{name:'Client',link:'/clients'}]} />
+                    <DropdownMenu icon={<FaDesktop />} name={'CRM System'} items={[{name:'Leads',link:'/leads'},{name:'Deals',link:'/deals'},{name:'Contract',link:'/contract'},{name:'CRM System Setup',link:'/leadtypes'}]} />
                     {/* {
                     permissions.includes('view_report') && (
                         <li className={url === '/reports-get' ? 'active bg-[#0A1B3F] p-2    text-[0.9rem] text-white' : ' p-2  text-black text-[0.9rem]'}>

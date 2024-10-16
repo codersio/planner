@@ -76,17 +76,17 @@ const TableComponent = ({ user, notif, user_type, branchesa }) => {
     };
 
     const handleDeleteBranch = async (id) => {
-    if (confirm('Are you sure you want to delete this branch?')) {
-        try {
-            await axios.delete(`/branches/${id}`); // Make sure to await the delete call
-            notyf.success('Branch deleted successfully!'); // Show success message
-            window.location.reload(); // Reload the page to reflect changes
-        } catch (error) {
-            console.error('Error deleting branch:', error);
-            notyf.error('An error occurred while deleting the branch.'); // Show error message
+        if (confirm('Are you sure you want to delete this branch?')) {
+            try {
+                await axios.delete(`/branches/${id}`); // Make sure to await the delete call
+                notyf.success('Branch deleted successfully!'); // Show success message
+                window.location.reload(); // Reload the page to reflect changes
+            } catch (error) {
+                console.error('Error deleting branch:', error);
+                notyf.error('An error occurred while deleting the branch.'); // Show error message
+            }
         }
-    }
-};
+    };
 
 
     return (
@@ -103,27 +103,27 @@ const TableComponent = ({ user, notif, user_type, branchesa }) => {
                         </button>
                     </div>
 
-                 <div className='mt-3'>
-    <table className='min-w-full border border-gray-300'>
-        <thead className='bg-gray-200'>
-            <tr>
-                <th className='px-4 py-2 text-left border-b'>Branch Name</th>
-                <th className='px-4 py-2 text-right border-b'>Action</th>
-            </tr>
-        </thead>
-        <tbody className=''>
-            {branchesa.map(branch => (
-                <tr key={branch.id} className='transition duration-200 hover:bg-gray-100'>
-                    <td className='px-4 py-2 border-b'>{branch.name}</td>
-                    <td className='px-4 py-2 text-right border-b'>
-                        <button onClick={() => openModal(branch)} className="text-blue-600 underline hover:text-blue-800">Edit</button>
-                        <button onClick={() => handleDeleteBranch(branch.id)} className="ml-4 text-red-600 underline hover:text-red-800">Delete</button>
-                    </td>
-                </tr>
-            ))}
-        </tbody>
-    </table>
-</div>
+                    <div className='mt-3'>
+                        <table className='min-w-full border border-gray-300'>
+                            <thead className='bg-gray-200'>
+                                <tr>
+                                    <th className='px-4 py-2 text-left border-b'>Branch Name</th>
+                                    <th className='px-4 py-2 text-right border-b'>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody className=''>
+                                {branchesa.map(branch => (
+                                    <tr key={branch.id} className='transition duration-200 hover:bg-gray-100'>
+                                        <td className='px-4 py-2 border-b'>{branch.name}</td>
+                                        <td className='px-4 py-2 text-right border-b'>
+                                            <button onClick={() => openModal(branch)} className="text-blue-600 underline hover:text-blue-800">Edit</button>
+                                            <button onClick={() => handleDeleteBranch(branch.id)} className="ml-4 text-red-600 underline hover:text-red-800">Delete</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
                 </div>
             </div>

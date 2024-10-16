@@ -7,25 +7,33 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SalaryController;
+use App\Http\Controllers\PaySlipController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RolsAndPermission;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\LeadTypeController;
+use App\Http\Controllers\LeadStageController;
 use App\Http\Controllers\TimesheetController;
-use App\Http\Controllers\DailyStatusController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignatonController;
+<<<<<<< Updated upstream
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmpolyeeSetupController;
 use App\Http\Controllers\ExpenseController;
+=======
+use App\Http\Controllers\LeadSourceController;
+use App\Http\Controllers\DailyStatusController;
+>>>>>>> Stashed changes
 use App\Http\Controllers\HolidayWorkController;
+use App\Http\Controllers\EmpolyeeSetupController;
 use App\Http\Controllers\LeaveManagementController;
 use App\Http\Controllers\NotificationAllController;
-use App\Http\Controllers\PaySlipController;
-use App\Http\Controllers\SalaryController;
 use Flasher\Prime\Test\Constraint\NotificationCount;
 
 // Route::get('/', function () {
@@ -217,3 +225,7 @@ Route::put('/tax-update/{tax}', [AccountController::class, 'taxupdate']);
 Route::delete('/tax-delete/{tax}', [AccountController::class, 'taxdestroy']);
 Route::get('/expense', [ExpenseController::class, 'index']);
 Route::get('/account/category', [AccountController::class, 'AccountCategory']);
+Route::resource('/clients', ClientController::class);
+Route::resource('/leadtypes',LeadTypeController::class);
+Route::resource('/leadstages',LeadStageController::class);
+Route::resource('/leadsources',LeadSourceController::class);
