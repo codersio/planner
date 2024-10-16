@@ -55,7 +55,7 @@ function payroll({ user, usrrr, notif, user_type, employees }) {
             <div className="w-full px-9">
                 <div className='flex justify-between items-center'>
                     <h1 className='text-xl'>Payroll</h1>
-                    <button type='button' className='text-sm px-4 py-2 rounded text-white bg-blue-500'>Bulk Send Payslip</button>
+                    <button type='button' className='text-sm px-4 py-2 rounded text-white bg-blue-500'>Bulk Send Payslip1</button>
                 </div>
                 <div className='py-4'>
                     <table className='w-full'>
