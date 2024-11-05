@@ -1,90 +1,59 @@
-import { useState, createContext, useContext } from 'react';
-import { Link } from '@inertiajs/react';
-import { Transition } from '@headlessui/react';
+import { Link } from '@inertiajs/react'
+import React, { useState, useRef, useEffect } from 'react'
+import { FaChevronLeft } from 'react-icons/fa'
+import { RxDotFilled } from "react-icons/rx";
 
-const DropDownContext = createContext();
+export default function DropdownMenu({ icon, name, items }) {
+  const [dropdown, setDropdown] = useState(false);
+  const [height, setHeight] = useState(0);
+  const ulRef = useRef(null);
 
-const Dropdown = ({ children }) => {
-    const [open, setOpen] = useState(false);
-
-    const toggleOpen = () => {
-        setOpen((previousState) => !previousState);
-    };
-
-    return (
-        <DropDownContext.Provider value={{ open, setOpen, toggleOpen }}>
-            <div className="relative">{children}</div>
-        </DropDownContext.Provider>
-    );
-};
-
-const Trigger = ({ children }) => {
-    const { open, setOpen, toggleOpen } = useContext(DropDownContext);
-
-    return (
-        <>
-            <div onClick={toggleOpen}>{children}</div>
-
-            {open && <div className="fixed inset-0 z-40" onClick={() => setOpen(false)}></div>}
-        </>
-    );
-};
-
-const Content = ({ align = 'right', width = '48', contentClasses = 'py-1 bg-white dark:bg-gray-700', children }) => {
-    const { open, setOpen } = useContext(DropDownContext);
-
-    let alignmentClasses = 'origin-top';
-
-    if (align === 'left') {
-        alignmentClasses = 'ltr:origin-top-left rtl:origin-top-right start-0';
-    } else if (align === 'right') {
-        alignmentClasses = 'ltr:origin-top-right rtl:origin-top-left end-0';
+  useEffect(() => {
+    if (dropdown) {
+      // Set the height to the scroll height (actual height of the content)
+      setHeight(ulRef.current.scrollHeight);
+    } else {
+      // Collapse the height to 0
+      setHeight(0);
     }
+  }, [dropdown]);
 
-    let widthClasses = '';
+  const renderItems = (items) => {
+    return items.map((item, index) => (
+      <li key={index}>
+        {item.subItems ? (
+          <DropdownMenu icon={<RxDotFilled size={14} />} name={item.name} items={item.subItems} />
+        ) : (
+          <Link href={item.link} className='flex items-center text-sm text-gray-600 gap-x-2'>
+            <RxDotFilled size={14} />
+            <span>{item.name}</span>
+          </Link>
+        )}
+      </li>
+    ));
+  };
 
-    if (width === '48') {
-        widthClasses = 'w-48';
-    }
-
-    return (
-        <>
-            <Transition
-                show={open}
-                enter="transition ease-out duration-200"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-            >
-                <div
-                    className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses}`}
-                    onClick={() => setOpen(false)}
-                >
-                    <div className={`rounded-md ring-1 ring-black ring-opacity-5 ` + contentClasses}>{children}</div>
-                </div>
-            </Transition>
-        </>
-    );
-};
-
-const DropdownLink = ({ className = '', children, ...props }) => {
-    return (
-        <Link
-            {...props}
-            className={
-                'block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800 transition duration-150 ease-in-out ' +
-                className
-            }
-        >
-            {children}
-        </Link>
-    );
-};
-
-Dropdown.Trigger = Trigger;
-Dropdown.Content = Content;
-Dropdown.Link = DropdownLink;
-
-export default Dropdown;
+  return (
+    <li className='h-full p-2'>
+      <button
+        type='button'
+        onClick={(e) => setDropdown(!dropdown)}
+        className={`w-full flex transition-all duration-300 space-x-2 text-sm items-center ${dropdown ? 'mb-3' : 'mb-0'}`}
+      >
+        {icon}
+        <span>{name}</span>
+        <FaChevronLeft className={`!ml-auto transition-all duration-300 ${dropdown ? '-rotate-90' : 'rotate-0'}`} size={12} />
+      </button>
+      <ul
+        ref={ulRef}
+        className="pl-5 space-y-2 overflow-hidden transition-all duration-300"
+        style={{
+          maxHeight: `${height}px`,
+          transition: 'max-height 0.3s ease',
+        }}
+      >
+        {renderItems(items)}
+      </ul>
+    </li>
+  );
+}

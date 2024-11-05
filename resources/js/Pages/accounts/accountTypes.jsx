@@ -7,7 +7,7 @@ import { useForm } from '@inertiajs/react'; // Import useForm from Inertia.js
 import { Notyf } from 'notyf'; // Import Notyf for notifications
 import 'notyf/notyf.min.css'; // Import Notyf styles
 
-const Category = ({ user, notif, user_type, category,type }) => {
+const accountTypes = ({ user, notif, user_type, accountTypes }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTaxId, setSelectedTaxId] = useState(null);
 
@@ -37,9 +37,9 @@ const Category = ({ user, notif, user_type, category,type }) => {
         e.preventDefault();
         if (selectedTaxId) {
            console.log(selectedTaxId);
-            post(`/account/category/update/${selectedTaxId}`, {
+            post(`/account/accountTypes/update/${selectedTaxId}`, {
                 onSuccess: () => {
-                    notyf.success('Category updated successfully!');
+                    notyf.success('accountTypes updated successfully!');
                     // window.location.reload(); // Refresh the page to reflect changes
                     closeModal();
                 },
@@ -49,9 +49,9 @@ const Category = ({ user, notif, user_type, category,type }) => {
             });
         } else {
             // Create new tax
-            post('/account/category/store', {
+            post('/account/accountTypes/store', {
                 onSuccess: () => {
-                    notyf.success('Category created successfully!');
+                    notyf.success('accountTypes created successfully!');
                     // window.location.reload(); // Refresh the page to reflect changes
                     closeModal();
                 },
@@ -67,7 +67,7 @@ const Category = ({ user, notif, user_type, category,type }) => {
     const handleDeleteTax = async (id) => {
         if (confirm('Are you sure you want to delete this tax?')) {
             try {
-                await inertiaDelete(`/account/category/delete/${id}`); // Make sure to await the delete call
+                await inertiaDelete(`/account/accountTypes/delete/${id}`); // Make sure to await the delete call
                 notyf.success('Tax deleted successfully!'); // Show success message
                 window.location.reload(); // Reload the page to reflect changes
             } catch (error) {
@@ -82,7 +82,7 @@ const Category = ({ user, notif, user_type, category,type }) => {
             <Sidebar className="flex px-9">
                 <div className="flex-1 p-6 bg-gray-100">
                     <div className='flex justify-between'>
-                        <h1 className="mb-4 text-2xl font-bold">Manage Category</h1>
+                        <h1 className="mb-4 text-2xl font-bold">Manage Account Type</h1>
                         <button onClick={() => openModal()} className="p-2 text-teal-900 underline rounded-md">
                             Create Tax
                         </button>
@@ -93,15 +93,15 @@ const Category = ({ user, notif, user_type, category,type }) => {
                             <thead className='bg-gray-200'>
                                 <tr>
                                     <th className='px-4 py-2 text-left border-b'> Name</th>
-                                    <th className='px-4 py-2 text-left border-b'>Account type</th>
+                                    {/* <th className='px-4 py-2 text-left border-b'>Amount</th> */}
                                     <th className='px-4 py-2 text-right border-b'>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {category.map(t => (
+                                {accountTypes.map(t => (
                                     <tr key={t.id} className='transition duration-200 hover:bg-gray-100'>
-                                        <td className='px-4 py-2 border-b'>{t.cname}</td>
-                                        <td className='px-4 py-2 border-b'>{t.tname}</td>
+                                        <td className='px-4 py-2 border-b'>{t.name}</td>
+                                        {/* <td className='px-4 py-2 border-b'>{t.amount}</td> */}
                                         <td className='px-4 py-2 text-right border-b'>
                                             <button onClick={() => openModal(t)} className="text-blue-600 underline hover:text-blue-800">Edit</button>
                                             <button onClick={() => handleDeleteTax(t.id)} className="ml-4 text-red-600 underline hover:text-red-800">Delete</button>
@@ -117,52 +117,48 @@ const Category = ({ user, notif, user_type, category,type }) => {
             {/* Modal for creating or updating tax */}
             <Modal show={isModalOpen} onClose={closeModal}>
                 <div className="p-6">
-                    <h2 className="text-lg font-bold">{selectedTaxId ? 'Edit Tax' : 'Create New Category'}</h2>
+                    <h2 className="text-lg font-bold">{selectedTaxId ? 'Edit Tax' : 'Create New accountTypes'}</h2>
                     {errors.name && <p className="text-red-600">{errors.name}</p>}
                     {errors.amount && <p className="text-red-600">{errors.amount}</p>}
                     <form onSubmit={handleCreateOrUpdateTax} className="mt-4">
-    <label className="block mb-2">
-        Category Name:
-        <input
-            type="text"
-            value={data.name}
-            onChange={(e) => setData('name', e.target.value)}
-            className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-            required
-        />
-    </label>
-    <label className="block mb-2">
-        Account Type:
-        <select
-            value={data.type_id}
-            onChange={(e) => setData('type_id', e.target.value)}
-            className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-            required
-        >
-            <option value="">Select Account Type</option>
-            {type.map((type) => (
-                <option key={type.id} value={type.id}>
-                    {type.name}
-                </option>
-            ))}
-        </select>
-    </label>
-    <button type="submit" className="p-2 mt-4 text-white bg-blue-600 rounded-md">
-        {selectedTaxId ? 'Update Category' : 'Create Category'}
-    </button>
-    <button
-        onClick={closeModal}
-        type="button"
-        className="p-2 mt-2 text-white bg-red-600 rounded-md"
-    >
-        Close
-    </button>
-</form>
-
+                        <label className="block mb-2">
+                            accountTypes Name:
+                            <input
+                                type="text"
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
+                                required
+                            />
+                        </label>
+                        {/* <label className="block mb-2">
+                            Amount:
+                            <input
+                                type="text"
+                                value={data.amount}
+                                onChange={(e) => setData('amount', e.target.value)}
+                                className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
+                                required
+                            />
+                        </label> */}
+                        <button
+                            type="submit"
+                            className="p-2 mt-4 text-white bg-blue-600 rounded-md"
+                        >
+                            {selectedTaxId ? 'Update accountTypes' : 'Create accountTypes'}
+                        </button>
+                        <button
+                            onClick={closeModal}
+                            type="button"
+                            className="p-2 mt-2 text-white bg-red-600 rounded-md"
+                        >
+                            Close
+                        </button>
+                    </form>
                 </div>
             </Modal>
         </>
     );
 };
 
-export default Category;
+export default accountTypes;

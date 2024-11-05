@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\BillingController;
+use App\Http\Controllers\ChartAccountController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ProfileController;
@@ -22,10 +24,14 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmpolyeeSetupController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\HolidayWorkController;
+use App\Http\Controllers\JournalEntryController;
 use App\Http\Controllers\LeaveManagementController;
 use App\Http\Controllers\NotificationAllController;
 use App\Http\Controllers\PaySlipController;
 use App\Http\Controllers\SalaryController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductServiceController;
+use App\Http\Controllers\SaleController;
 use Flasher\Prime\Test\Constraint\NotificationCount;
 
 // Route::get('/', function () {
@@ -217,3 +223,33 @@ Route::put('/tax-update/{tax}', [AccountController::class, 'taxupdate']);
 Route::delete('/tax-delete/{tax}', [AccountController::class, 'taxdestroy']);
 Route::get('/expense', [ExpenseController::class, 'index']);
 Route::get('/account/category', [AccountController::class, 'AccountCategory']);
+Route::post('/account/category/store', [AccountController::class, 'Accountstore']);
+Route::post('/account/category/update/{accountCategory}', [AccountController::class, 'Accountupdate']);
+Route::delete('/account/category/delete/{accountCategory}', [AccountController::class, 'Accountdestroy']);
+
+Route::get('account/unit', [AccountController::class, 'unit']);
+Route::post('account/unit/store', [AccountController::class, 'unitstore']);
+Route::post('account/unit/update/{unit}', [AccountController::class, 'unitupdate']);
+Route::delete('account/unit/delete/{unit}', [AccountController::class, 'unitdestroy']);
+
+
+Route::get('account/accountTypes', [AccountController::class, 'accountType']);
+Route::post('account/accountTypes/store', [AccountController::class, 'accountTypesstore']);
+Route::post('account/accountTypes/update/{accountType}', [AccountController::class, 'accountTypesupdate']);
+Route::delete('account/accountTypes/delete/{accountType}', [AccountController::class, 'accountTypesdestroy']);
+
+Route::resource('billing', BillingController::class);
+Route::get('suppliers', [UserController::class, 'supplier']);
+Route::post('suppliers', [UserController::class, 'supplierstore']);
+Route::post('suppliers/delete/{supplier}', [UserController::class, 'supplierdestroy']);
+Route::post('suppliers/update/{supplier}', [UserController::class, 'supplierupdate']);
+
+Route::resource('product-services', ProductServiceController::class);
+Route::resource('chart-accounts', ChartAccountController::class);
+Route::resource('journals', JournalEntryController::class);
+Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+Route::get('/sales/add', [SaleController::class, 'create'])->name('sales.create');
+Route::post('/sales/store', [SaleController::class, 'store'])->name('sales.store');
+Route::get('/sales/{id}/edit', [SaleController::class, 'edit'])->name('sales.edit');
+Route::put('/sales/{id}/edit', [SaleController::class, 'update']);
+Route::delete('/sales/{id}/delete', [SaleController::class, 'destroy'])->name('sales.destroy');

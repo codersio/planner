@@ -5,11 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AccountCategory extends Model
+class ProductService extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'name',
-        'type_id'
+        'tax_id',
+        'purchase_price',
+        'unit_id',
+        'description',
+        'image',
+        'sku',
     ];
 }
