@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductService;
+use App\Models\ServiceCategory;
 use App\Models\Unit;
 use App\Models\Tax;
 use Illuminate\Http\Request;
@@ -14,10 +15,11 @@ class ProductServiceController extends Controller
 
     public function index()
     {
-        $products = ProductService::all();
+        $products = ProductService::join('service_categories', 'service_categories.id', '=', 'product_services.category_id')->select('product_services.name', 'product_services.id', 'service_categories.name as cname')->get();
         $unit = Unit::all();
         $tax = Tax::all();
-        return Inertia::render('product/index', compact('products', 'unit', 'tax'));
+        $category = ServiceCategory::all();
+        return Inertia::render('product/index', compact('products', 'unit', 'tax', 'category'));
     }
     // Create
     public function store(Request $request)
@@ -25,12 +27,12 @@ class ProductServiceController extends Controller
         // dd($request->all());
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'tax_id' => 'required|string',
-            'purchase_price' => 'required|numeric',
-            'unit_id' => 'required|integer',
+            'category_id' => 'required|string',
+            // 'purchase_price' => 'required|numeric',
+            // 'unit_id' => 'required|integer',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg', // Validate image file
-            'sku' => 'required|'
+            // 'sku' => 'required|'
         ]);
 
         // Handle image upload
@@ -42,7 +44,7 @@ class ProductServiceController extends Controller
         }
 
         ProductService::create($validatedData);
-        return response()->json(['message' => 'Product service created successfully']);
+        return back();
     }
 
     // Edit
@@ -52,12 +54,11 @@ class ProductServiceController extends Controller
 
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'tax_id' => 'required|string',
-            'purchase_price' => 'required|numeric',
-            'unit_id' => 'required|integer',
+
+
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'sku' => 'required|string|unique:product_services,sku,' . $productService->id,
+
         ]);
 
         // Handle image upload

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Client;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -36,12 +37,24 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'type' => 1,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = new User();
+        $user->name = $request['name'];
+        $user->email = $request['email'];
+        $user->type = 2;
+        $user->password = bcrypt($request['password']);
+        $user->save();
+
+        // Assign the role to the user
+        $user->assignRole('customer');
+
+        // Create and save the employee record
+        $employee = new Client();
+        $employee->user_id = $user->id;
+
+
+        $employee->phone = $request['phone'];
+        $employee->address = $request['address'];
+        $employee->save();
 
         event(new Registered($user));
 

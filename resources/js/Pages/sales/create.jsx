@@ -9,7 +9,7 @@ import Nav from '@/Layouts/Nav';
 
 const notyf = new Notyf();
 
-function create({ customers, products, taxes }) {
+function create({ customers, products, taxes,invoiceNumber }) {
     const [rows, setRows] = useState([
         { product: '', quantity: 0, price: 0, amount: 0, amountWithTax: 0, selectedTaxes: [] }
     ]);
@@ -74,7 +74,7 @@ function create({ customers, products, taxes }) {
     };
 
     const { post, data, setData, errors, processing } = useForm({
-        bill_no: '',
+        bill_no: invoiceNumber,
         status: '',
         date: '',
         customer_id: '',
@@ -133,7 +133,7 @@ function create({ customers, products, taxes }) {
                     {/* Fields for Customer Details and Invoice Information */}
              <div className='flex flex-col w-1/2 gap-2 p-2'>
                         <label htmlFor=""> Invoice Number.</label>
-                        <input onChange={(e) => setData('bill_no', e.target.value)} value={data.bill_no} type="text" className="w-full rounded form-input" placeholder='Enter bill no' />
+                        <input disabled onChange={(e) => setData('bill_no', e.target.value)} value={data.bill_no} type="text" className="w-full rounded form-input" placeholder='Enter bill no' />
                         {errors.bill_no && <p className="mt-1 text-xs text-red-500">{errors.bill_no}</p>}
                     </div>
                     <div className='flex flex-col w-1/2 gap-2 p-2'>

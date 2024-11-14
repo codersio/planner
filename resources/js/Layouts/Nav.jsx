@@ -54,30 +54,38 @@ const Nav = ({ user_type }) => {
                     }
                     <DropdownMenu icon={<FaFolderClosed />} name={'Project Management'} items={[
                         { name: 'Projects', link: '/projects' },
+                         { name: 'Timesheet', link: '/daily-status' },
                         { name: 'Tasks', link: '/projects-task' },
                         { name: 'Task Calendar', link: '/taskcalendar' },
                         { name: 'Reports', link: '/reports-get' }
+                    ]} />
+                     <DropdownMenu icon={<FaFolderClosed />} name={'User Management'} items={[
+                        { name: 'Customer', link: '/clients' },
+                        //  { name: 'Timesheet', link: '/daily-status' },
+                        // { name: 'Tasks', link: '/projects-task' },
+                        // { name: 'Task Calendar', link: '/taskcalendar' },
+                        // { name: 'Reports', link: '/reports-get' }
                     ]} />
                     <DropdownMenu
                         icon={<FaUsers />}
                         name={'Account System'}
                         items={[
-                            { name: 'Client', link: '/clients' },
+                            // { name: 'Client', link: '/clients' },
                             {
                                 name: 'Purchases',
                                 subItems: [
-                                    { name: 'Expense', link: '/purchases/expense' },
-                                    { name: 'Bill', link: '/purchases/bill' },
-                                    { name: 'Payment', link: '/purchases/payment' },
-                                    { name: 'Credit Note', link: '/purchases/credit-note' },
-                                    { name: 'Debit Note', link: '/purchases/debit-note' }
+                                    { name: 'Expense', link: '/amc-expense-index' },
+                                    { name: 'Invoice', link: '/sales' },
+
+                                    { name: 'Income', link: '/income' },
+
                                 ]
                             },
                             {
                                 name: 'Double Entry',
                                 subItems: [
-                                    { name: 'chart of account', link: '/finance/double-entry' },
-                                    { name: 'Journal Account', link: '/finance/budget-management' },
+                                    { name: 'chart of account', link: 'chart-accounts' },
+                                    { name: 'Journal Account', link: '/journals' },
                                     { name: 'Ledger Summery', link: '/finance/budget-management' },
                                     { name: 'Balance sheet', link: '/finance/budget-management' },
                                 ]
@@ -101,6 +109,17 @@ const Nav = ({ user_type }) => {
                         { name: 'Contract', link: '/taskcalendar' },
                         // { name: 'Reports', link: '/reports-get' }
                     ]} />
+
+                       <DropdownMenu icon={<FaFolderClosed />} name={'Invetory Management'} items={[
+                        { name: 'Services', link: '/product-services' },
+                        // { name: 'Deals', link: '/projects-task' },
+                        // { name: 'Contract', link: '/taskcalendar' },
+                        // { name: 'Reports', link: '/reports-get' }
+                    ]} />
+
+                     <li className={url === '/complaint' ? 'active bg-[#0A1B3F] p-2 px-5 text-[0.9rem] text-white' : 'p-2 text-black text-[0.9rem]'}>
+                                <Link href='/complaint' className='flex space-x-2'> <span> <FaHandPaper /></span> <span>complaint</span> </Link>
+                            </li>
                 </ul>
             </div>
         </nav>

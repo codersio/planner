@@ -57,14 +57,15 @@ class ChartAccountController extends Controller
     // Store a new chart account
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string',
-            'code' => 'required|string|unique:chart_accounts',
-            'type_id' => 'required|integer',
-            'category_id' => 'required|integer',
-            'status' => 'required|integer',
-            'description' => 'nullable|string'
-        ]);
+        // dd($request->all());
+        // $request->validate([
+        //     'name' => 'required|string',
+        //     'code' => 'required|string|unique:chart_accounts',
+        //     'type_id' => 'required|integer',
+        //     'category_id' => 'required|integer',
+        //     'status' => 'required|integer',
+        //     // 'description' => 'nullable|string'
+        // ]);
 
         ChartAccount::create($request->all());
         return back()->with('success', 'Chart Account created successfully.');

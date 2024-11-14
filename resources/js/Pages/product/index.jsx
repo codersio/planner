@@ -8,7 +8,7 @@ import { Notyf } from 'notyf'; // Import Notyf for notifications
 import 'notyf/notyf.min.css'; // Import Notyf styles
 import axios from 'axios'; // Ensure axios is imported for API requests
 
-const Product = ({ user, notif, user_type, products,unit,tax }) => {
+const Product = ({ user, notif, user_type, products,category,tax }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState(null);
     const [taxOptions, setTaxOptions] = useState([]); // State to store tax options
@@ -20,7 +20,7 @@ const Product = ({ user, notif, user_type, products,unit,tax }) => {
     // Use useForm for form handling
     const { data, setData, post, put, reset, errors } = useForm({
         name: '',
-        tax_id: '',
+        category_id: '',
         purchase_price: '',
         unit_id: '',
         description: '',
@@ -55,7 +55,7 @@ const Product = ({ user, notif, user_type, products,unit,tax }) => {
         setIsModalOpen(true);
         setData({
             name: product ? product.name : '',
-            tax_id: product ? product.tax_id : '',
+            category_id: product ? product.category_id : '',
             purchase_price: product ? product.purchase_price : '',
             unit_id: product ? product.unit_id : '',
             description: product ? product.description : '',
@@ -75,7 +75,7 @@ const Product = ({ user, notif, user_type, products,unit,tax }) => {
         e.preventDefault();
         const formData = new FormData();
         formData.append('name', data.name);
-        formData.append('tax_id', data.tax_id);
+        formData.append('category_id', data.category_id);
         formData.append('purchase_price', data.purchase_price);
         formData.append('unit_id', data.unit_id);
         formData.append('description', data.description);
@@ -130,16 +130,16 @@ const Product = ({ user, notif, user_type, products,unit,tax }) => {
     };
 
     return (
-        <div className='w-[83.2%] ml-[11.5rem]'>
+        <div className='w-[83.2%] ml-[11.5rem] absolute right-0'>
             <Header user={user} notif={notif} />
             <Nav user_type={user_type} />
             <div className="flex px-9">
                 {/* <Sidebar /> */}
-                <div className="flex-1 p-6 bg-gray-100">
+                <div className="flex-1 p-6 ">
                     <div className='flex justify-between'>
-                        <h1 className="mb-4 text-2xl font-bold">Manage Products</h1>
+                        <h1 className="mb-4 text-2xl font-bold">Manage Services</h1>
                         <button onClick={() => openModal()} className="p-2 text-teal-900 underline rounded-md">
-                            Create Product
+                            Create Services
                         </button>
                     </div>
 
@@ -147,7 +147,8 @@ const Product = ({ user, notif, user_type, products,unit,tax }) => {
                         <table className='min-w-full border border-gray-300'>
                             <thead className='bg-gray-200'>
                                 <tr>
-                                    <th className='px-4 py-2 text-left border-b'>Product Name</th>
+                                    <th className='px-4 py-2 text-left border-b'>Services Name</th>
+                                    <th className='px-4 py-2 text-left border-b'>Services Category</th>
                                     <th className='px-4 py-2 text-right border-b'>Action</th>
                                 </tr>
                             </thead>
@@ -155,6 +156,7 @@ const Product = ({ user, notif, user_type, products,unit,tax }) => {
                                 {products.map(product => (
                                     <tr key={product.id} className='transition duration-200 hover:bg-gray-100'>
                                         <td className='px-4 py-2 border-b'>{product.name}</td>
+                                        <td className='px-4 py-2 border-b'>{product.cname}</td>
                                         <td className='px-4 py-2 text-right border-b'>
                                             <button onClick={() => openModal(product)} className="text-blue-600 underline hover:text-blue-800">Edit</button>
                                             <button onClick={() => handleDeleteProduct(product.id)} className="ml-4 text-red-600 underline hover:text-red-800">Delete</button>
@@ -168,7 +170,7 @@ const Product = ({ user, notif, user_type, products,unit,tax }) => {
             </div>
             <Modal show={isModalOpen} onClose={closeModal}>
                 <div className="p-6">
-                    <h2 className="text-lg font-bold">{selectedProductId ? 'Edit Product' : 'Create New Product'}</h2>
+                    <h2 className="text-lg font-bold">{selectedProductId ? 'Edit Services' : 'Create New Services'}</h2>
                     {errors.name && <p className="text-red-600">{errors.name}</p>}
                     <form onSubmit={handleCreateOrUpdateProduct} className="mt-4">
                         <label className="block mb-2">
@@ -181,60 +183,24 @@ const Product = ({ user, notif, user_type, products,unit,tax }) => {
                                 required
                             />
                         </label>
-                        <div className="flex space-x-2">
-                            <label className="block mb-2">
-                            Purchase Price:
-                            <input
-                                type="text"
-                                value={data.purchase_price}
-                                onChange={(e) => setData('purchase_price', e.target.value)}
-                                className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-                                required
-                            />
-                        </label>
-                         <label className="block mb-2">
-                            SKU:
-                            <input
-                                type="text"
-                                value={data.sku}
-                                onChange={(e) => setData('sku', e.target.value)}
-                                className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-                                required
-                            />
-                        </label>
-                        </div>
+
                         <label className="block mb-2">
-                            Tax ID:
+                            Category :
                             <select
-                                value={data.tax_id}
-                                onChange={(e) => setData('tax_id', e.target.value)}
+                                value={data.category_id}
+                                onChange={(e) => setData('category_id', e.target.value)}
                                 className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
                                 required
                             >
-                                <option value="">Select Tax</option>
-                                {tax.map((tax) => (
+                                <option value="">Select Category</option>
+                                {category.map((tax) => (
                                     <option key={tax.id} value={tax.id}>
                                         {tax.name}
                                     </option>
                                 ))}
                             </select>
                         </label>
-                        <label className="block mb-2">
-                            Unit ID:
-                            <select
-                                value={data.unit_id}
-                                onChange={(e) => setData('unit_id', e.target.value)}
-                                className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
-                                required
-                            >
-                                <option value="">Select Unit</option>
-                                {unit.map((units) => (
-                                    <option key={units.id} value={units.id}>
-                                        {units.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
+
                         <label className="block mb-2">
                             Image:
                             <input
@@ -253,19 +219,21 @@ const Product = ({ user, notif, user_type, products,unit,tax }) => {
                                 className="block w-full p-2 mt-1 border border-gray-300 rounded-md"
                             />
                         </label>
-                        <button
+                       <div className='flex space-x-2'>
+                         <button
                             type="submit"
                             className="p-2 mt-4 text-white bg-blue-600 rounded-md"
                         >
-                            {selectedProductId ? 'Update Product' : 'Create Product'}
+                            {selectedProductId ? 'Update ' : 'Save'}
                         </button>
                         <button
                             onClick={closeModal}
                             type="button"
-                            className="p-2 mt-2 text-white bg-red-600 rounded-md"
+                            className="p-2 mt-4 text-white bg-red-600 rounded-md"
                         >
                             Close
                         </button>
+                       </div>
                     </form>
                 </div>
             </Modal>

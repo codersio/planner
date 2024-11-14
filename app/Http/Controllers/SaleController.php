@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\WhatsAppService;
+use Carbon\Carbon;
 
 class SaleController extends Controller
 {
@@ -21,14 +22,7 @@ class SaleController extends Controller
         ]);
     }
 
-    public function create()
-    {
-        $customers = DB::table('clients')->join('users', 'users.id', 'clients.user_id')->get();
-        // dd($customers);
-        $products = ProductService::all();
-        $taxs = Tax::all();
-        return Inertia::render('sales/create', ['customers' => $customers, 'products' => $products, 'taxes' => $taxs]);
-    }
+
 
     // public function store(Request $request)
     // {
@@ -78,35 +72,29 @@ class SaleController extends Controller
 
     //     return redirect()->route('sales.index');
     // }
+
+    public function create()
+    {
+        $date = Carbon::now()->format('Ymd');
+
+        // Get the last sale record's ID, or set to 0 if there are no sales yet
+        $lastSale = Sale::latest()->first();
+        $lastId = $lastSale ? $lastSale->id : 0;
+
+        // Generate the new invoice number in the format "INVYYYYMMDD<ID+1>"
+        $invoiceNumber = 'INV' . $date . ($lastId + 1);
+        $customers = DB::table('clients')->join('users', 'users.id', 'clients.user_id')->get();
+        // dd($customers);
+        $products = ProductService::all();
+        $taxs = Tax::all();
+        return Inertia::render('sales/create', ['customers' => $customers, 'products' => $products, 'taxes' => $taxs, 'invoiceNumber' => $invoiceNumber]);
+    }
     public function store(Request $request)
     {
-        // $request->validate([
-        //     'bill_no' => 'required',
-        //     'customer_id' => 'required',
-        //     'date' => 'required',
-        //     'billing_address' => 'required',
-        //     'status' => 'required',
-        //     'amc_type' => 'required',
-        //     'mobile_no' => 'required',
-        //     'email' => 'required',
-        //     'sales_details' => 'required|array'
-        // ]);
+
 
         $sale = Sale::create($request->all());
-        // dd($sale);
 
-        // Prepare product names from sales_details
-        // $productNames = '';
-        // foreach ($request->sales_details as $product) {
-        //     $productNames .= $product['product'] . ', ';
-        // }
-        // $productNames = rtrim($productNames, ', ');
-        // $recipient = '+91' . ltrim($request->mobile_no, '+');
-
-        // // Send WhatsApp message using the service
-        // $whatsAppService = new WhatsAppService();
-        // $message = "Hello! Your sale for the following products has been recorded: {$productNames}. Thank you!";
-        // $response = $whatsAppService->sendMessage($recipient, $message);
 
         return redirect()->route('sales.index');
         $products = DB::table('product')->join('products_category', 'products_category.id', '=', 'product.category_id')->select('products_category.name', 'product.id')->get();

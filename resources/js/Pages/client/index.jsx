@@ -16,6 +16,7 @@ const Client = ({ clients,user,notif,user_type }) => {
         email: '',
         phone: '',
         address: '',
+        password: '',
     });
 
     // Handling create action
@@ -55,7 +56,7 @@ const Client = ({ clients,user,notif,user_type }) => {
                     <Header user={user} notif={notif} />
   <Nav user_type={user_type} />
 
-        <div className='w-[85.2%] ml-[11.5rem] absolute right-0 overflow-hidden px-3'>
+        <div className='w-[83.2%] ml-[11.5rem] absolute right-0 overflow-hidden px-3'>
 
          <div className='flex justify-between'>
                <h1 className='text-xl'>Manage Clients</h1>
@@ -81,29 +82,37 @@ const Client = ({ clients,user,notif,user_type }) => {
                             placeholder="Client Name"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
-                            className='form-input rounded text-sm'
+                            className='form-input rounded text-sm w-full'
                         />
                         <input
                             type="email"
                             placeholder="Client Email"
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
-                            className='form-input rounded text-sm'
+                            className='form-input rounded text-sm w-full'
                         />
                         <input
                             type="text"
                             placeholder="Phone Number"
                             value={data.phone}
                             onChange={(e) => setData('phone', e.target.value)}
-                            className='form-input rounded text-sm'
+                            className='form-input rounded text-sm w-full'
                         />
                         <input
                             type="text"
                             placeholder="Address"
                             value={data.address}
                             onChange={(e) => setData('address', e.target.value)}
-                            className='form-input rounded text-sm'
+                            className='form-input rounded text-sm w-full'
                         />
+                           <input
+                            type="text"
+                            placeholder="Password"
+                            value={data.password}
+                            onChange={(e) => setData('password', e.target.value)}
+                            className='form-input rounded text-sm w-full'
+                        />
+
                         <button className='py-2 px-5 rounded bg-blue-500 text-white'>Submit</button>
                     </form>
                 </div>
@@ -153,34 +162,42 @@ const Client = ({ clients,user,notif,user_type }) => {
                     </div>
                     <hr />
                     <form className='space-y-3' onSubmit={handleUpdate}>
-                        <input
+                      <div className='w-full'>
+                          <input
                             type="text"
                             placeholder="Client Name"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
-                            className='form-input rounded text-sm'
+                            className='form-input rounded text-sm w-full'
                         />
-                        <input
+                      </div>
+                      <div>
+                          <input
                             type="email"
                             placeholder="Client Email"
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
-                            className='form-input rounded text-sm'
+                            className='form-input rounded text-sm w-full'
                         />
-                        <input
+                      </div>
+                       <div>
+                         <input
                             type="text"
                             placeholder="Phone Number"
                             value={data.phone}
                             onChange={(e) => setData('phone', e.target.value)}
-                            className='form-input rounded text-sm'
+                            className='form-input rounded text-sm w-full'
                         />
-                        <input
+                       </div>
+                       <div>
+                         <input
                             type="text"
                             placeholder="Address"
                             value={data.address}
                             onChange={(e) => setData('address', e.target.value)}
-                            className='form-input rounded text-sm'
+                            className='form-input rounded text-sm w-full'
                         />
+                       </div>
                         <button className='py-2 px-5 rounded bg-blue-500 text-white'>Update</button>
                     </form>
                 </div>

@@ -1,196 +1,252 @@
-import React, { useState } from 'react';
-import { useForm } from '@inertiajs/react';
-import Header from '@/Layouts/Header';
-import Nav from '@/Layouts/Nav';
-import { Notyf } from 'notyf';
-import 'notyf/notyf.min.css';
+import React, { useState,useEffect } from "react";
+import { useForm } from "@inertiajs/react";
+import Header from "@/Layouts/Header";
+import Nav from "@/Layouts/Nav";
 
-function JournalEntry({ user, nextJournalNumber }) {
-    const notyf = new Notyf(); // Initialize Notyf for notifications
-    const formattedJournalNumber = `#${nextJournalNumber}`; // Format journal number
+const ChartAccounts = ({ accountGroups, category, type }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+const [filteredCategories, setFilteredCategories] = useState([]);
+  const { data, setData, post, put, reset, clearErrors, errors } = useForm({
+    id: "",
+    code: "",
+    name: "",
+    type_id: "",
+    category_id: "",
+    status: "Enabled",
+  });
 
-    const { data, setData, post } = useForm({
-        journal_number: formattedJournalNumber,
-        transaction_date: '',
-        reference: '',
-        description: '',
-        rows: [{ account: '', debit: 0, credit: 0, description: '', amount: 0 }],
-    });
+  const openModal = (account = null) => {
+    clearErrors();
+    setEditMode(!!account);
+    if (account) {
+      setSelectedAccount(account);
+      setData({
+        id: account.id,
+        code: account.code,
+        name: account.name,
+        type_id: account.type_id,
+        category_id: account.category_id,
+        status: account.status,
+      });
+    } else {
+      reset();
+    }
+    setModalOpen(true);
+  };
 
-    const addRow = () => {
-        setData('rows', [...data.rows, { account: '', debit: 0, credit: 0, description: '', amount: 0 }]);
-    };
+  const closeModal = () => {
+    setModalOpen(false);
+    reset();
+    setSelectedAccount(null);
+  };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        post('/journals', data, {
-            onSuccess: () => {
-                // Show success notification
-                notyf.success('Journal entry created successfully!');
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-                // Increment the journal number for the next entry
-                const nextNumber = parseInt(nextJournalNumber) + 1; // Increment the journal number
-                setData({
-                    journal_number: `#${nextNumber}`, // Update to new journal number format
-                    transaction_date: '',
-                    reference: '',
-                    description: '',
-                    rows: [{ account: '', debit: 0, credit: 0, description: '', amount: 0 }],
-                });
-            },
-            onError: (errors) => {
-                // Show error notification
-                notyf.error('There was an error creating the journal entry!');
-                console.error('Error creating journal entry:', errors);
-            }
-        });
-    };
+    if (editMode) {
+      put(`/chart-accounts/${data.id}`, {
+        onSuccess: () => closeModal(),
+      });
+    } else {
+      post("/chart-accounts", {
+        onSuccess: () => closeModal(),
+      });
+    }
+  };
+useEffect(() => {
+    // Ensure type_id is a number for accurate filtering
+    const typeId = data.type_id ? parseInt(data.type_id, 10) : null;
 
-    return (
-        <div className='w-[83.2%] ml-[11.5rem] absolute right-0 overflow-hidden'>
-            <Header />
-            <Nav />
-            <form onSubmit={handleSubmit} className="max-w-5xl p-6 mx-auto bg-gray-100">
-                {/* Header Section */}
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold">Journal Entry Create</h1>
-                    <div className="text-sm text-gray-500">Dashboard &gt; Double Entry &gt; Journal Entry</div>
-                </div>
-
-                {/* Form Fields */}
-                <div className="grid grid-cols-1 gap-4 p-4 mb-6 bg-white rounded-lg shadow-sm md:grid-cols-3">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Journal Number</label>
-                        <input
-                            type="text"
-                            value={data.journal_number}
-                            readOnly
-                            className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Transaction Date</label>
-                        <input
-                            type="date"
-                            value={data.transaction_date}
-                            onChange={(e) => setData('transaction_date', e.target.value)}
-                            className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Reference</label>
-                        <input
-                            type="text"
-                            value={data.reference}
-                            onChange={(e) => setData('reference', e.target.value)}
-                            className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                        />
-                    </div>
-                    <div className="col-span-3">
-                        <label className="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            rows="2"
-                        ></textarea>
-                    </div>
-                </div>
-
-                {/* Table Section */}
-                <div className="p-4 bg-white rounded-lg shadow-sm">
-                    <table className="min-w-full border-collapse">
-                        <thead>
-                            <tr className="text-left bg-gray-200">
-                                <th className="p-3 text-sm font-semibold text-gray-700 border-b">Account</th>
-                                <th className="p-3 text-sm font-semibold text-gray-700 border-b">Debit</th>
-                                <th className="p-3 text-sm font-semibold text-gray-700 border-b">Credit</th>
-                                <th className="p-3 text-sm font-semibold text-gray-700 border-b">Description</th>
-                                <th className="p-3 text-sm font-semibold text-gray-700 border-b">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.rows.map((row, index) => (
-                                <tr key={index}>
-                                    <td className="p-3 border-b">
-                                        <input
-                                            type="text"
-                                            placeholder="1060 - Checking Account"
-                                            value={row.account}
-                                            onChange={(e) => {
-                                                const newRows = [...data.rows];
-                                                newRows[index].account = e.target.value;
-                                                setData('rows', newRows);
-                                            }}
-                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        />
-                                    </td>
-                                    <td className="p-3 border-b">
-                                        <input
-                                            type="number"
-                                            placeholder="Debit"
-                                            value={row.debit}
-                                            onChange={(e) => {
-                                                const value = parseFloat(e.target.value) || 0;
-                                                const newRows = [...data.rows];
-                                                newRows[index].debit = value;
-                                                setData('rows', newRows);
-                                            }}
-                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        />
-                                    </td>
-                                    <td className="p-3 border-b">
-                                        <input
-                                            type="number"
-                                            placeholder="Credit"
-                                            value={row.credit}
-                                            onChange={(e) => {
-                                                const value = parseFloat(e.target.value) || 0;
-                                                const newRows = [...data.rows];
-                                                newRows[index].credit = value;
-                                                setData('rows', newRows);
-                                            }}
-                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        />
-                                    </td>
-                                    <td className="p-3 border-b">
-                                        <input
-                                            type="text"
-                                            placeholder="Description"
-                                            value={row.description}
-                                            onChange={(e) => {
-                                                const newRows = [...data.rows];
-                                                newRows[index].description = e.target.value;
-                                                setData('rows', newRows);
-                                            }}
-                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        />
-                                    </td>
-                                    <td className="p-3 text-right border-b">
-                                        <input
-                                            type="number"
-                                            placeholder="0.00"
-                                            value={row.amount}
-                                            className="w-full text-right border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-
-                    <button type="button" onClick={addRow} className="flex items-center px-4 py-2 mt-4 text-sm font-medium text-white bg-teal-500 rounded-md hover:bg-teal-600">
-                        + Add Row
-                    </button>
-                </div>
-
-                {/* Submit Button */}
-                <div className="flex justify-end mt-6">
-                    <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">Submit</button>
-                </div>
-            </form>
-        </div>
+    // Filter categories based on selected type_id, including base categories
+    const filtered = category.filter(
+      (c) => c.type_id === typeId || c.type_id === null
     );
-}
+    setFilteredCategories(filtered);
+  }, [data.type_id, category]);
+  return (
+    <div className="w-[83.2%] absolute right-0 overflow-hidden">
+      <Header />
+      <Nav />
+      <div className="min-h-screen p-6 bg-gray-50">
+        <h1 className="mb-6 text-2xl font-bold">Manage Chart of Accounts</h1>
+     <div className="flex justify-end">
+         <button
+          onClick={() => openModal()}
+          className="px-4 py-2 text-white bg-green-600 rounded-md shadow hover:bg-green-700"
+        >
+          Add New Account
+        </button>
+     </div>
+        {/* Render Account Groups */}
+        {accountGroups.map((group) => (
+          <div key={group.title} className="mb-8">
+            <h3 className="mb-4 text-xl font-semibold">{group.title}</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full bg-white rounded-lg shadow table-auto">
+                <thead className="bg-gray-200">
+                  <tr>
+                    <th className="px-4 py-2 text-left">Code</th>
+                    <th className="px-4 py-2 text-left">Name</th>
+                    <th className="px-4 py-2 text-left">Type</th>
+                    <th className="px-4 py-2 text-left">Status</th>
+                    <th className="px-4 py-2 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.accounts.map((account) => (
+                    <tr key={account.id} className="border-b">
+                      <td className="px-4 py-2">{account.code}</td>
+                      <td className="px-4 py-2">{account.name}</td>
+                      <td className="px-4 py-2">{account.type}</td>
+                      <td className="px-4 py-2">
+                        <span
+                          className={`px-3 py-1 text-sm rounded-full ${
+                            account.status === "Enabled"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-200 text-gray-700"
+                          }`}
+                        >
+                          {account.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 text-center">
+                        <button
+                          onClick={() => openModal(account)}
+                          className="mr-4 text-blue-600 hover:text-blue-900"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(account.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
 
-export default JournalEntry;
+        {/* Add New Account Button */}
+
+
+        {/* Modal */}
+        {modalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="relative p-6 bg-white rounded-md shadow-lg w-96">
+              <h2 className="mb-4 text-xl font-bold">
+                {editMode ? "Edit Account" : "Add New Account"}
+              </h2>
+              <form onSubmit={handleSubmit}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Code
+                  </label>
+                  <input
+                    type="text"
+                    value={data.code}
+                    onChange={(e) => setData("code", e.target.value)}
+                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500"
+                  />
+                  {errors.code && (
+                    <span className="text-sm text-red-600">{errors.code}</span>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    value={data.name}
+                    onChange={(e) => setData("name", e.target.value)}
+                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500"
+                  />
+                  {errors.name && (
+                    <span className="text-sm text-red-600">{errors.name}</span>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Type
+                  </label>
+                  <select
+                    value={data.type_id}
+                    onChange={(e) => setData("type_id", e.target.value)}
+                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500"
+                  >
+                    <option value="">Select account type</option>
+                    {type.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.type_id && (
+                    <span className="text-sm text-red-600">{errors.type_id}</span>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Category
+                  </label>
+                  <select
+                    value={data.category_id}
+                    onChange={(e) => setData("category_id", e.target.value)}
+                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500"
+                  >
+                    <option value="">Select category</option>
+                    {filteredCategories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+                  </select>
+                  {errors.category_id && (
+                    <span className="text-sm text-red-600">{errors.category_id}</span>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Status
+                  </label>
+                  <select
+                    value={data.status}
+                    onChange={(e) => setData("status", e.target.value)}
+                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500"
+                  >
+                    <option value="Enabled">Enabled</option>
+                    <option value="Disabled">Disabled</option>
+                  </select>
+                </div>
+                <div className="flex justify-end space-x-4">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-4 py-2 text-gray-700 bg-gray-300 rounded-md shadow hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-white bg-blue-600 rounded-md shadow hover:bg-blue-700"
+                  >
+                    {editMode ? "Update" : "Create"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ChartAccounts;

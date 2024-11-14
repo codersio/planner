@@ -31,6 +31,11 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
         $user = new User();
         $user->name = $request['name'];
         $user->email = $request['email'];
@@ -49,7 +54,7 @@ class ClientController extends Controller
         $employee->phone = $request['phone'];
         $employee->address = $request['address'];
         $employee->save();
-        return back()->with('success', 'Client created successfully!');
+        return redirect('login')->with('success', 'Client created successfully!');
     }
 
     /**
