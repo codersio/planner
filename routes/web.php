@@ -276,3 +276,5 @@ Route::get('/Get-Customer/{id}', [QuotationController::class, 'getCustomer']);
 Route::get('/getproduct', [QuotationController::class, 'getproduct']);
 Route::get('/gettaxoptions', [QuotationController::class, 'gettaxoptions']);
 Route::get('/quotation-print/{id}', [QuotationController::class, 'Print']);
+Route::get('/upload-documents/{id}',[AdminController::class,'uploadDoc'])->name('upld');
+Route::post('/upload',[AdminController::class,]);

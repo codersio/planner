@@ -177,8 +177,20 @@ class AdminController extends Controller
             ->where('task_assigns.employee_id', Auth::user()->id)
             ->count();
         //         dd($projecteach);
-        return Inertia::render('admin/dashboard', compact('projects', 'query', 'usrrr', 'user', 'user_type', 'projectsss', 'taskss', 'holidays', 'emp', 'leave', 'notif', 'assin', 'emp', 'results', 'projecteach', 'totalHours'));
+        $projs = Project::where('client_id',\auth()->user()->id)->get();
+        return Inertia::render('admin/dashboard', compact('projs','projects', 'query', 'usrrr', 'user', 'user_type', 'projectsss', 'taskss', 'holidays', 'emp', 'leave', 'notif', 'assin', 'emp', 'results', 'projecteach', 'totalHours'));
     }
+
+    public function uploadDoc(){
+       return Inertia::render('admin/uploaddoc');
+   }
+
+   public function upld($id,Request $request){
+    $file = $request->file('image');
+    $name = Carbon::now().$file->getClientOriginalExtension();
+    $file->move('/uploads/docs/',$name);
+    DB::table('documents')->insert(['project_id'=>$id,'name'=>$name,'path'=>'/uploads/docs/']);
+   }
 
     public function countProject()
     {

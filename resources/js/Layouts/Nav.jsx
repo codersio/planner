@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
-import { FaUserCircle, FaTasks, FaUsers } from "react-icons/fa";
+import { FaUserCircle, FaTasks, FaUsers, FaTachometerAlt } from "react-icons/fa";
 import { GoProjectSymlink } from "react-icons/go";
 import { IoTimeOutline } from "react-icons/io5";
 import { MdOutlineReport } from "react-icons/md";
@@ -44,6 +44,9 @@ const Nav = ({ user_type }) => {
                     <div className="p-2 logo">
                         <img src="/SCS-01-removebg-preview.png" alt="Description" className="w-[85%]" />
                     </div>
+                    <li className={url === '/dashboard' ? 'active bg-[#0A1B3F] p-2 px-5 text-[0.9rem] text-white' : 'p-2 text-black text-[0.9rem]'}>
+                        <Link href='/dashboard' className='flex items-center space-x-2'> <span> <FaTachometerAlt /></span> <span>Dashboard</span> </Link>
+                    </li>
                     <DropdownMenu icon={<FaHome />} name={'HRMS'} items={menuitems} />
                     {
                         permissions.includes('view_role') && (
