@@ -107,9 +107,9 @@ const Nav = ({ user_type }) => {
                     />
 
                       <DropdownMenu icon={<FaFolderClosed />} name={'CRM'} items={[
-                        { name: 'leads', link: '/projects' },
-                        { name: 'Deals', link: '/projects-task' },
-                        { name: 'Contract', link: '/taskcalendar' },
+                        { name: 'leads', link: '/lead' },
+                        { name: 'Deals', link: '/deal' },
+                        { name: 'Contract', link: '/contract' },
                         // { name: 'Reports', link: '/reports-get' }
                     ]} />
 
