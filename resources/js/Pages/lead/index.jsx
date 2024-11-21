@@ -104,7 +104,7 @@ function Index({ user, user_type, notif, leads = [] }) {
                                         <div className="flex justify-center space-x-3">
                                             <Link
                                                 className="text-green-800 text-[1.1rem] bg-[#0C7785] p-1 rounded-md"
-                                                href={`leads-edit/${lead.id}`}>
+                                                href={`/lead/${lead.id}/edit`}>
                                                 <CiEdit className="text-white" />
                                             </Link>
                                             <button

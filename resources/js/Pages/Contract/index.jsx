@@ -40,7 +40,7 @@ function Index({ user, user_type, notif }) {
   const handleDelete = (e, contractId) => {
     e.preventDefault();
     console.log('Delete contract with ID:', contractId);
-    // Add your delete logic here
+    
   };
 
   return (
@@ -53,11 +53,16 @@ function Index({ user, user_type, notif }) {
             <input
               type="text"
               value={query}
-              onChange={handleSearch} // Ensure there's an onChange for controlled input
+              onChange={handleSearch} 
               placeholder="Search contracts..."
               className="p-2 border rounded-md w-[80%]"
             />
           </div>
+          <div className="px-4">
+                        <Link href="/contract/create" className="flex space-x-2 underline">
+                            <span className="font-bold">Create New Contract</span>
+                        </Link>
+                    </div>
         </div>
         <br />
         <table className="table w-full p-4 border">
@@ -86,13 +91,13 @@ function Index({ user, user_type, notif }) {
                     <div className="flex justify-center space-x-3">
                       <Link
                         className="text-green-800 text-[1.1rem] bg-[#0C7785] p-1 rounded-md"
-                        to={`/leads-edit/${contract.id}`} // Use Link with correct route
+                        href={`/contract/${contract.id}/edit`} 
                       >
                         <CiEdit className="text-white" />
                       </Link>
                       <button
                         className="text-white text-[1.1rem] bg-[#FF3A6E] p-1 rounded-md"
-                        onClick={(e) => handleDelete(e, contract.id)} // Pass contract ID to delete function
+                        onClick={(e) => handleDelete(e, contract.id)} 
                       >
                         <RiDeleteBinLine />
                       </button>

@@ -21,11 +21,15 @@
         "vite": "^5.4.8"
     },
     "dependencies": {
+        "@emotion/react": "^11.13.5",
+        "@emotion/styled": "^11.13.5",
         "@fullcalendar/core": "^6.1.15",
         "@fullcalendar/daygrid": "^6.1.15",
         "@fullcalendar/react": "^6.1.15",
         "@inertiajs/inertia": "^0.11.1",
         "@inertiajs/inertia-react": "^0.8.1",
+        "@mui/icons-material": "^6.1.8",
+        "@mui/material": "^6.1.8",
         "choices.js": "^10.2.0",
         "html2canvas": "^1.4.1",
         "jspdf": "^2.5.2",
