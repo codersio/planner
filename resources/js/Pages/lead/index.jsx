@@ -2,28 +2,20 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/Layouts/Header';
 import Nav from '@/Layouts/Nav';
 import axios from 'axios';
-import { Link } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { RiDeleteBinLine } from "react-icons/ri";
 import { CiEdit } from "react-icons/ci";
 import { Notyf } from 'notyf';
 import 'notyf/notyf.min.css'; 
-
 const notyf = new Notyf();
 
-function Index({ user, user_type, notif, leads = [] }) {
-
-    const dummyLeads = [
-        { id: 1, name: 'John Doe', subject: 'Website Development', lead_stage: 'Negotiation', lead_source: 'Email', status: 'Active', timestamp: '2024-11-19 10:00 AM' },
-        { id: 2, name: 'Jane Smith', subject: 'Mobile App Design', lead_stage: 'Qualified', lead_source: 'LinkedIn', status: 'Pending', timestamp: '2024-11-18 3:45 PM' },
-        { id: 3, name: 'Samuel Green', subject: 'SEO Optimization', lead_stage: 'Prospecting', lead_source: 'Referral', status: 'Active', timestamp: '2024-11-17 2:30 PM' },
-        { id: 4, name: 'Emily Brown', subject: 'E-commerce Store', lead_stage: 'Closed Won', lead_source: 'Website', status: 'Closed', timestamp: '2024-11-16 1:15 PM' },
-        { id: 5, name: 'Michael Johnson', subject: 'Marketing Campaign', lead_stage: 'Follow-up', lead_source: 'Facebook', status: 'Active', timestamp: '2024-11-15 4:20 PM' },
-    ];
-
+function Index({ user, user_type, notif, leads }) {
+let dummyLeads =[]
     const [query, setQuery] = useState('');
     const [filteredLeads, setFilteredLeads] = useState(leads.length > 0 ? leads : dummyLeads); 
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10); 
+    const { delete:destroy } = useForm();
 
     useEffect(() => {
         const filtered = filteredLeads.filter(lead =>
@@ -49,11 +41,25 @@ function Index({ user, user_type, notif, leads = [] }) {
 
     const handleDelete = (e, id) => {
         e.preventDefault();
-        if (confirm('Are you sure you want to delete this lead?')) {
-            const updatedLeads = filteredLeads.filter(lead => lead.id !== id);
-            setFilteredLeads(updatedLeads);
-            notyf.success('Lead deleted successfully.');
-        }
+        if(confirm('are u sure u want to delete?')){
+            destroy(`/lead/${id}`, {
+                onSuccess: () => {
+                    console.log('Form submitted successfully');
+                    window.location.reload()
+                },
+                onError: (err) => {
+                    console.log('Form submission error', err);
+                },
+            });
+         }
+    else{
+        console.log(" error fetching data")
+    }
+        // if (confirm('Are you sure you want to delete this lead?')) {
+        //     const updatedLeads = filteredLeads.filter(lead => lead.id !== id);
+        //     setFilteredLeads(updatedLeads);
+        //     notyf.success('Lead deleted successfully.');
+        // }
     };
 
     return (
@@ -81,8 +87,8 @@ function Index({ user, user_type, notif, leads = [] }) {
                 <table className="table w-full p-4 border">
                     <thead className="border bg-[#0A1B3F] text-white">
                         <tr>
-                            <th className="p-3 text-left border">NAME</th>
-                            <th className="p-3 text-left border">SUBJECT</th>
+                            <th className="p-3 text-left border">CLIENT NAME</th>
+                            <th className="p-3 text-left border">Email</th>
                             <th className="p-3 text-left border">LEAD STAGE</th>
                             <th className="p-3 text-left border">LEAD SOURCE</th>
                             <th className="p-3 text-left border">STATUS</th>
@@ -94,12 +100,12 @@ function Index({ user, user_type, notif, leads = [] }) {
                         {currentLeads.length > 0 ? (
                             currentLeads.map(lead => (
                                 <tr key={lead.id}>
-                                    <td className="p-3 border">{lead.name}</td>
-                                    <td className="p-3 border">{lead.subject}</td>
+                                    <td className="p-3 border">{lead.client_name}</td>
+                                    <td className="p-3 border">{lead.email_address}</td>
+                                    <td className="p-3 border">{lead.phone_number}</td>
+                                    <td className="p-3 border">{lead.source}</td>
+                                    <td className="p-3 border">{lead.lead_for}</td>
                                     <td className="p-3 border">{lead.lead_stage}</td>
-                                    <td className="p-3 border">{lead.lead_source}</td>
-                                    <td className="p-3 border">{lead.status}</td>
-                                    <td className="p-3 border">{lead.timestamp}</td>
                                     <td className="border">
                                         <div className="flex justify-center space-x-3">
                                             <Link

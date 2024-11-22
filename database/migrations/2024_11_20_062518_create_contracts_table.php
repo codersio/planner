@@ -12,8 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('contracts', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id(); 
+            $table->string('contractor_name'); 
+            $table->string('email_address')->unique(); 
+            $table->string('phone_number'); 
+            $table->string('contractor_type'); 
+            $table->decimal('contract_value', 15, 2); 
+            $table->date('end_date'); 
+            $table->text('description')->nullable(); 
+            $table->timestamps(); 
         });
     }
 
@@ -22,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('contract_types');
+        Schema::dropIfExists('contracts');
     }
 };

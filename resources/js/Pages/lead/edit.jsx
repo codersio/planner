@@ -11,17 +11,17 @@ import { Notyf } from 'notyf';
 import 'notyf/notyf.min.css'; // Import Notyf styles
 const notyf = new Notyf();
 
-const Create = ({ employees, user_type, user, notif }) => {
-    const { data, setData, post, errors } = useForm({
-        title: '',
-        email: '',
-        phone_no: '',
-        source: '',
-        Lead_For: '',
-        Lead_Stage: '',
-        Comment: '',
+const Create = ({ employees, user_type, user, notif,clients ,lead}) => {
+    const { data, setData,put, errors } = useForm({
+        client_id:lead.client_id || '',
+        email_address:lead.email_address ||'',
+        phone_number:lead.phone_number ||'',
+        source:lead.source||'',
+        lead_for:lead.lead_for||'',
+        lead_stage:lead. lead_stage||'',
+        comment:lead.comment||''
     });
-
+    
     const handleChange = (e) => {
         setData(e.target.name, e.target.value);
     };
@@ -39,24 +39,21 @@ const Create = ({ employees, user_type, user, notif }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post('/projects-store', {
+        put(`/lead/${lead.id}`,{
             onSuccess: () => {
-                notyf.success('Project Created successfully');
+                notyf.success('Leads Created successfully');
             },
             onError: (errors) => {
-                // Check if 'errors' is an object and has entries
                 if (typeof errors === 'object' && errors !== null) {
                     Object.entries(errors).forEach(([key, value]) => {
                         if (Array.isArray(value)) {
-                            // If value is an array (e.g., validation messages)
                             value.forEach(message => notyf.error(message));
                         } else {
-                            // Single error message
                             notyf.error(value);
                         }
                     });
                 } else {
-                    // Handle unexpected error format
+                
                     notyf.error('An unexpected error occurred.');
                 }
             }
@@ -81,19 +78,27 @@ const Create = ({ employees, user_type, user, notif }) => {
                 <form onSubmit={handleSubmit} className='space-y-3'>
                     <div>
                         <label htmlFor="name">Client's Name</label>
-                        <input id="name" className='w-full rounded-lg' name="title" type="text" value={data.title} onChange={handleChange} required />
+                        <select className='w-full rounded-lg' name="client_id" value={data.client_id} onChange={handleChange} id="">
+                            <option value="">-- Select Client --</option>
+                            {
+                                clients && clients.map((cl)=>(
+                                    <option key={cl.id} value={cl.id}>{cl.name}</option>
+                                ))
+                            }
+                        </select>
+                        {/* <input id="name" className='w-full rounded-lg' name="client_id" type="text" value={data.client_id} onChange={handleChange} required /> */}
                         {errors.name && <div>{errors.name}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="email">Email Address</label>
-                        <input id="email" className='w-full rounded-lg' name="email" type="email" value={data.email} onChange={handleChange} required />
+                        <input id="email" className='w-full rounded-lg' name="email_address" type="email" value={data.email_address} onChange={handleChange} required />
                         {errors.email && <div>{errors.email}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="phone_no">Phone Number</label>
-                        <input id="phone_no" className='w-full rounded-lg' name="phone_no" type="tel" value={data.phone_no} onChange={handleChange} required />
+                        <input id="phone_no" className='w-full rounded-lg' name="phone_number" type="tel" value={data.phone_number} onChange={handleChange} required />
                         {errors.phone_no && <div>{errors.phone_no}</div>}
                     </div>
 
@@ -105,24 +110,24 @@ const Create = ({ employees, user_type, user, notif }) => {
 
                     <div>
                         <label htmlFor="Lead_For">Lead For</label>
-                        <input id="Lead_For" className='w-full rounded-lg' name="Lead_For" type="text" value={data.Lead_For} onChange={handleChange} required />
+                        <input id="Lead_For" className='w-full rounded-lg' name="lead_for" type="text" value={data.lead_for} onChange={handleChange} required />
                         {errors.Lead_For && <div>{errors.Lead_For}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="Lead_Stage">Lead Stage</label>
-                        <input id="Lead_Stage" className='w-full rounded-lg' name="Lead_Stage" type="text" value={data.Lead_Stage} onChange={handleChange} required />
+                        <input id="Lead_Stage" className='w-full rounded-lg' name="lead_stage" type="text" value={data.lead_stage} onChange={handleChange} required />
                         {errors.Lead_Stage && <div>{errors.Lead_Stage}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="Comment">Comment</label>
-                        <textarea id="Comment" className='w-full rounded-lg' name="Comment" value={data.Comment} onChange={handleChange} required />
+                        <textarea id="Comment" className='w-full rounded-lg' name="comment" value={data.comment} onChange={handleChange} required />
                         {errors.Comment && <div>{errors.Comment}</div>}
                     </div>
 
 
-                    <button type="submit" className='bg-[#0A1B3F] p-2 rounded-md text-white w-[20%]'>Edit</button>
+                    <button type="submit" className='bg-[#0A1B3F] p-2 rounded-md text-white w-[20%]'>EDIT</button>
                 </form>
             </div>
         </div>
