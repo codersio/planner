@@ -3,10 +3,11 @@ import React, { useState, useRef, useEffect } from 'react'
 import { FaChevronLeft } from 'react-icons/fa'
 import { RxDotFilled } from "react-icons/rx";
 
-export default function DropdownMenu({ icon, name, items }) {
+export default function DropdownMenu({ icon, name, items,permission }) {
   const [dropdown, setDropdown] = useState(false);
   const [height, setHeight] = useState(0);
   const ulRef = useRef(null);
+  console.log(permission)
 
   useEffect(() => {
     if (dropdown) {
@@ -29,6 +30,7 @@ export default function DropdownMenu({ icon, name, items }) {
             items={item.subItems}
           />
         ) : (
+          // perms.includes()
           <Link href={item.link} className='flex items-center text-sm text-gray-600 gap-x-2'>
             <RxDotFilled size={14} />
             <span>{item.name}</span>

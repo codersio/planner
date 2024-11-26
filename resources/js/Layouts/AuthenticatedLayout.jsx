@@ -7,9 +7,9 @@ import { Link } from '@inertiajs/react';
 import Header from './Header';
 import Nav from './Nav';
 
-export default function Authenticated({  header, children,user,usrrr,notif,user_type  }) {
+export default function Authenticated({  header, children,user,usrrr,notif,user_type }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
-
+    console.log(user)
     return (
         <div className='w-[85.2%] absolute right-0 overflow-hidden'>
         <Header user={user} notif={notif}/>

@@ -40,7 +40,6 @@ class AuthenticatedSessionController extends Controller
         Log::info('User authenticated:', ['id' => $user->id, 'type' => $user->type]);
 
         if ($user->type == 1) {
-
             return redirect()->route('dashboard');
         } elseif ($user->type == 2) {
 

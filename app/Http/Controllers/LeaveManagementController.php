@@ -232,7 +232,7 @@ class LeaveManagementController extends Controller
 
         // Calculate the requested days
         $requestedDays = floor(abs($endDate->diffInDays($startDate))) + 1;
-        dd($requestedDays);
+        // dd($requestedDays);
 
         // Fetch the leave type
         $leaveType = LeaveType::where('employee_id', Auth::user()->id)->find($request->leave_type_id);

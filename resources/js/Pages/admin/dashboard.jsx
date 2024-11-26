@@ -23,11 +23,11 @@ const Employee = ({ user, employee, user_type, projs, projects, query, usrrr, pr
     console.log(user)
     return (
 
-        <div className='w-[85.2%] absolute right-0 overflow-hidden' onClick={(e) => setNotifyModal(!notifyModal)}>
+        <div className={`${user && user !== 'customer' ? 'w-[85.2%]':'w-full'} h-full absolute right-0 overflow-hidden`} onClick={(e) => setNotifyModal(!notifyModal)}>
             <Header user={user} notif={notif} />
             <Nav user_type={user_type} />
             {
-                user && user == "Admin" ? (
+                user && user !== "customer" ? (
                     <Fragment>
                         <div className='px-8 table-section rounded-b-md'>
                             <div className='w-full '>
@@ -216,25 +216,27 @@ const Employee = ({ user, employee, user_type, projs, projects, query, usrrr, pr
                     </Fragment>
                 ) : (
                     <Fragment>
-                        <div className='w-full flex px-10'>
-                            {
-                                projs && projs.map((p) => (
-                                    <div className='w-1/3 p-3'>
-                                        <Link href={route('upld',p.id)} className='p-3 block bg-zinc-700 rounded space-y-1'>
-                                            <h1 className='font-semibold text-lg text-white'>{p.title}</h1>
-                                            <p className='text-sm text-white'>{p.estimate_time + " hrs"} - &#8377; {p.estimate_budget}</p>
-                                            <p className='text-sm text-white'>{new Date(p.start_date).toLocaleDateString()} to {new Date(p.end_date).toLocaleDateString()}</p>
-                                            <br />
-                                            <div className='flex justify-between items-center'>
-                                                <span className='text-white'>Progress:</span>
-                                                <span className='font-semibold text-white'>{p.progress}%</span>
-                                            </div>
-                                            <progress className='w-full h-2 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:bg-green-500 [&::-webkit-progress-value]:rounded-full' value={p.progress}
-                                                max="100"></progress>
-                                        </Link>
-                                    </div>
-                                ))
-                            }
+                        <div className='table-section flex px-10 '>
+                            <div className='w-full'>
+                                {
+                                    projs && projs.map((p) => (
+                                        <div className='w-1/3 p-3'>
+                                            <Link href={route('upld', p.id)} className='p-3 block bg-zinc-700 rounded space-y-1'>
+                                                <h1 className='font-semibold text-lg text-white'>{p.title}</h1>
+                                                <p className='text-sm text-white'>{p.estimate_time + " hrs"} - &#8377; {p.estimate_budget}</p>
+                                                <p className='text-sm text-white'>{new Date(p.start_date).toLocaleDateString()} to {new Date(p.end_date).toLocaleDateString()}</p>
+                                                <br />
+                                                <div className='flex justify-between items-center'>
+                                                    <span className='text-white'>Progress:</span>
+                                                    <span className='font-semibold text-white'>{p.progress}%</span>
+                                                </div>
+                                                <progress className='w-full h-2 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:bg-green-500 [&::-webkit-progress-value]:rounded-full' value={p.progress}
+                                                    max="100"></progress>
+                                            </Link>
+                                        </div>
+                                    ))
+                                }
+                            </div>
                         </div>
                     </Fragment>
                 )

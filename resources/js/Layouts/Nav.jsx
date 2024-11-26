@@ -12,7 +12,7 @@ import { LuLogOut } from "react-icons/lu";
 import { FaHome } from "react-icons/fa";
 import DropdownMenu from '@/Components/DropdownMenu';
 import { FaFolderClosed } from 'react-icons/fa6';
-const Nav = ({ user_type }) => {
+const Nav = ({ user_type,usrrr }) => {
     const [permissions, setPermissions] = useState([]);
     const [toggle, SetToggle] = useState(true);
     const { url } = usePage();
@@ -26,13 +26,16 @@ const Nav = ({ user_type }) => {
     }, [user_type]);
 
     const menuitems = [
-        { name: 'employees', link: "/employees" },
+        { name: 'employees', link: "/employees",perm:"view_employee" },
         { name: 'leave management', link: "/leave-index" },
         { name: 'employee setup', link: "/branches" },
         { name: 'attendance', link: "/attendance" },
         { name: 'Salary generate', link: '/salaries' },
         { name: 'payroll', link: '/payroll' },
     ];
+
+    const userPermissions = ['view_employee', 'view_leaves', 'view_attendance']; // Example permissions
+const accessibleItems = menuitems.filter(item => userPermissions.includes(item.permission));
 
     return (
         <nav className='grid p-5 place-items-center'>
@@ -47,13 +50,16 @@ const Nav = ({ user_type }) => {
                     <li className={url === '/dashboard' ? 'active bg-[#0A1B3F] p-2 px-5 text-[0.9rem] text-white' : 'p-2 text-black text-[0.9rem]'}>
                         <Link href='/dashboard' className='flex items-center space-x-2'> <span> <FaTachometerAlt /></span> <span>Dashboard</span> </Link>
                     </li>
-                    <DropdownMenu icon={<FaHome />} name={'HRMS'} items={menuitems} />
+                    <DropdownMenu icon={<FaHome />} name={'HRMS'} items={menuitems}/>
                     {
                         permissions.includes('view_role') && (
                             <li className={url === '/roles-permission-details' ? 'active bg-[#0A1B3F] p-2 px-5 text-[0.9rem] text-white' : 'p-2 text-black text-[0.9rem]'}>
                                 <Link href='/roles-permission-details' className='flex space-x-2'> <span> <FaHandPaper /></span> <span>Roles</span> </Link>
                             </li>
                         )
+                    }
+                    {
+
                     }
                     <DropdownMenu icon={<FaFolderClosed />} name={'Project Management'} items={[
                         { name: 'Projects', link: '/projects' },
