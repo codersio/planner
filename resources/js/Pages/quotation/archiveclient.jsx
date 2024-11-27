@@ -5,7 +5,6 @@ import { RiDeleteBinLine } from "react-icons/ri";
 import { MdLockClock, MdOutlineAssignmentLate } from "react-icons/md";
 import { Notyf } from 'notyf';
 import 'notyf/notyf.min.css'; // Import Notyf styles
-import AdminLayout from '@/Layouts/AdminLayout';
 
 const notyf = new Notyf();
 

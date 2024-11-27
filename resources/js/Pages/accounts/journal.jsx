@@ -43,7 +43,7 @@ function JournalEntry({user,nextJournalNumber}) {
             {/* Header Section */}
             <div className="mb-6">
                 <h1 className="text-2xl font-bold">Journal Entry Create</h1>
-                <div className="text-sm text-gray-500">Dashboard > Double Entry > Journal Entry</div>
+                <div className="text-sm text-gray-500">Dashboard {'>'} Double Entry {'>'} Journal Entry</div>
             </div>
 
             {/* Form Fields */}

@@ -1,4 +1,3 @@
-import AdminLayout from '@/Layouts/AdminLayout'
 import { useForm } from '@inertiajs/react';
 import React, { useState } from 'react'
 import { useEffect } from 'react';
