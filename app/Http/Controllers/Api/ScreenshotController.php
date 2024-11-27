@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Screenshot;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class ScreenshotController extends Controller
 {
