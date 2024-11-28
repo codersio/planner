@@ -34,5 +34,8 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'map'=>[
+        'key'=>env('MAP_API_KEY')
+    ]
 
 ];

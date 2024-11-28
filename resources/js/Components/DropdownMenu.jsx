@@ -1,13 +1,13 @@
-import { Link } from '@inertiajs/react'
+import { Link, usePage } from '@inertiajs/react'
 import React, { useState, useRef, useEffect } from 'react'
 import { FaChevronLeft } from 'react-icons/fa'
 import { RxDotFilled } from "react-icons/rx";
 
-export default function DropdownMenu({ icon, name, items,permission }) {
+export default function DropdownMenu({ icon, name, items }) {
   const [dropdown, setDropdown] = useState(false);
   const [height, setHeight] = useState(0);
   const ulRef = useRef(null);
-  console.log(permission)
+  const { props } = usePage();
 
   useEffect(() => {
     if (dropdown) {
@@ -20,7 +20,7 @@ export default function DropdownMenu({ icon, name, items,permission }) {
   }, [dropdown]);
 
   const renderItems = (items) => {
-    return items.map((item, index) => (
+    return items.filter(item => props.permission.includes(item.perm)).map((item, index) => (      
       <li key={index}>
         {item.subItems ? (
           // Recursive dropdown for nested sub-items
@@ -37,6 +37,7 @@ export default function DropdownMenu({ icon, name, items,permission }) {
           </Link>
         )}
       </li>
+    
     ));
   };
 

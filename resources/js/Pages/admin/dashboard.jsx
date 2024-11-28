@@ -11,7 +11,7 @@ import { FaTasks } from "react-icons/fa";
 import AssignView from './asignview';
 import { Fragment } from 'react';
 const Employee = ({ user, employee, user_type, projs, projects, query, usrrr, projectsss, taskss, holidays, leave, notif, assin, emp, results, projecteach, totalHours }) => {
-
+    const [notifyModal,setNotifyModal] = useState(false)
     const [permissions, setPermissions] = useState([]);
     useEffect(() => {
         if (Array.isArray(user_type)) {

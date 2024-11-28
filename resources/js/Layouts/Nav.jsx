@@ -27,11 +27,11 @@ const Nav = ({ user_type,usrrr }) => {
 
     const menuitems = [
         { name: 'employees', link: "/employees",perm:"view_employee" },
-        { name: 'leave management', link: "/leave-index" },
-        { name: 'employee setup', link: "/branches" },
-        { name: 'attendance', link: "/attendance" },
-        { name: 'Salary generate', link: '/salaries' },
-        { name: 'payroll', link: '/payroll' },
+        { name: 'leave management', link: "/leave-index", perm:"view_leave" },
+        { name: 'employee setup', link: "/branches", perm:"view_employee" },
+        { name: 'attendance', link: "/attendance",perm:"view_attendance" },
+        { name: 'Salary generate', link: '/salaries', perm:"view_salary" },
+        { name: 'payroll', link: '/payroll', perm: "view_payroll" },
     ];
 
     const userPermissions = ['view_employee', 'view_leaves', 'view_attendance']; // Example permissions
@@ -62,10 +62,10 @@ const accessibleItems = menuitems.filter(item => userPermissions.includes(item.p
 
                     }
                     <DropdownMenu icon={<FaFolderClosed />} name={'Project Management'} items={[
-                        { name: 'Projects', link: '/projects' },
-                         { name: 'Timesheet', link: '/daily-status' },
-                        { name: 'Tasks', link: '/projects-task' },
-                        { name: 'Task Calendar', link: '/taskcalendar' },
+                        { name: 'Projects', link: '/projects',perm:"view_project" },
+                         { name: 'Timesheet', link: '/daily-status',perm:"view_timesheet" },
+                        { name: 'Tasks', link: '/projects-task', perm:"view_task" },
+                        { name: 'Task Calendar', link: '/taskcalendar', perm:"view_task" },
                         { name: 'Reports', link: '/reports-get' }
                     ]} />
                      <DropdownMenu icon={<FaFolderClosed />} name={'User Management'} items={[
@@ -88,7 +88,8 @@ const accessibleItems = menuitems.filter(item => userPermissions.includes(item.p
 
                                     { name: 'Income', link: '/income' },
 
-                                ]
+                                ],
+                                perm:"view_purchase"
                             },
                             {
                                 name: 'Double Entry',
@@ -97,30 +98,32 @@ const accessibleItems = menuitems.filter(item => userPermissions.includes(item.p
                                     { name: 'Journal Account', link: '/journals' },
                                     { name: 'Ledger Summery', link: '/finance/budget-management' },
                                     { name: 'Balance sheet', link: '/finance/budget-management' },
-                                ]
+                                ],
+                                perm:"view_double_entry"
                             },
                              {
-                                name: 'Budget ',link:'/bduget'
+                                name: 'Budget ',link:'/bduget',
                                 // subItems: [
                                 //     { name: 'chart of account', link: '/finance/double-entry' },
                                 //     { name: 'Journal Account', link: '/finance/budget-management' },
                                 //     { name: 'Ledger Summery', link: '/finance/budget-management' },
                                 //     { name: 'Balance sheet', link: '/finance/budget-management' },
-                                // ]
+                                // ],
+                                perm:"view_budget"
                             },
-                            { name: 'Accounting Setup', link: '/tax' }
+                            { name: 'Accounting Setup', link: '/tax',perm:"view_tax" }
                         ]}
                     />
 
                       <DropdownMenu icon={<FaFolderClosed />} name={'CRM'} items={[
-                        { name: 'leads', link: '/lead' },
-                        { name: 'Deals', link: '/deal' },
-                        { name: 'Contract', link: '/contract' },
+                        { name: 'leads', link: '/lead', perm:"view_leads" },
+                        { name: 'Deals', link: '/deal', perm:"view_deals"},
+                        { name: 'Contract', link: '/contract',perm:"view_contracts" },
                         // { name: 'Reports', link: '/reports-get' }
                     ]} />
 
                        <DropdownMenu icon={<FaFolderClosed />} name={'Invetory Management'} items={[
-                        { name: 'Services', link: '/product-services' },
+                        { name: 'Services', link: '/product-services',perm:"view_service" },
                         // { name: 'Deals', link: '/projects-task' },
                         // { name: 'Contract', link: '/taskcalendar' },
                         // { name: 'Reports', link: '/reports-get' }
