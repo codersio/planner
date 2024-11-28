@@ -21,6 +21,8 @@
 
 <body class="font-sans antialiased">
     @inertia
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.map.key') }}&libraries=places" async defer>
+    </script>
 </body>
 
 </html>
