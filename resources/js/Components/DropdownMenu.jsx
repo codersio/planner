@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { FaChevronLeft } from 'react-icons/fa'
 import { RxDotFilled } from "react-icons/rx";
 
-export default function DropdownMenu({ icon, name, items }) {
+export default function DropdownMenu({ icon, name, items, user }) {
   const [dropdown, setDropdown] = useState(false);
   const [height, setHeight] = useState(0);
   const ulRef = useRef(null);
@@ -18,9 +18,9 @@ export default function DropdownMenu({ icon, name, items }) {
       setHeight(0);
     }
   }, [dropdown]);
-
+  console.log(props.auth.user)
   const renderItems = (items) => {
-    return items.filter(item => props.permission.includes(item.perm)).map((item, index) => (      
+    return (props.auth.user.roles[0]?.name === "admin" ? items : items.filter(item => props.permission.includes(item.perm))).map((item, index) => (      
       <li key={index}>
         {item.subItems ? (
           // Recursive dropdown for nested sub-items

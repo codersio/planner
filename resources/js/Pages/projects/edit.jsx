@@ -18,6 +18,7 @@ const EditProject = ({ project, employees,user,user_type,notif }) => {
         estimate_budget: project.estimate_budget || '',
         start_date: project.start_date || '',
         end_date: project.end_date || '',
+        priority: project.priority || 0,
         employee_ids: project.assignments.map(assign => assign.employee_id) || [],
     });
 
@@ -117,6 +118,15 @@ const EditProject = ({ project, employees,user,user_type,notif }) => {
                     />
                     {errors.end_date && <div>{errors.end_date}</div>}
                 </div>
+                <div>
+                        <label htmlFor="address">Priority</label>
+                        <select name="priority" id="" value={data.priority} onChange={(e) => setData('priority', e.target.value)} className='w-full rounded-lg'>
+                            <option value="">-- Select Priority --</option>
+                            <option value="0">Low</option>
+                            <option value="1">Medium</option>
+                            <option value="2">High</option>
+                        </select>
+                    </div>
                 {/* <div>
                     <label htmlFor="employees">Assign Employees:</label>
                     <select

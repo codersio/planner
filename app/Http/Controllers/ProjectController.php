@@ -90,6 +90,7 @@ class ProjectController extends Controller
         $project->estimate_budget = $request->estimate_budget;
         $project->start_date = $request->start_date;
         $project->end_date = $request->end_date;
+        $project->priority = $request->priority;
         // $project->employee_id = $request->employee_id;
         $project->save();
 
@@ -166,6 +167,7 @@ class ProjectController extends Controller
         $project->estimate_budget = $request->estimate_budget;
         $project->start_date = $request->start_date;
         $project->end_date = $request->end_date;
+        $project->priority = $request->priority;
         $project->save();
 
         // Update assignments

@@ -19,6 +19,7 @@ const Create = ({ employees,user_type,user ,notif}) => {
         end_date: '',
         employee_id: '',
         status: '',
+        priority:0,
     });
 
     const handleChange = (e) => {
@@ -106,6 +107,15 @@ const Create = ({ employees,user_type,user ,notif}) => {
                     <div>
                         <label htmlFor="address">End Date</label>
                         <input className='w-full rounded-lg' id="address" name='end_date' type="date" value={data.end_date} onChange={handleChange} required />
+                    </div>
+                    <div>
+                        <label htmlFor="address">Priority</label>
+                        <select name="priority" id="" value={data.priority} onChange={handleChange} className='w-full rounded-lg'>
+                            <option value="">-- Select Priority --</option>
+                            <option value="0">Low</option>
+                            <option value="1">Medium</option>
+                            <option value="2">High</option>
+                        </select>
                     </div>
 
                     {/* <div>
