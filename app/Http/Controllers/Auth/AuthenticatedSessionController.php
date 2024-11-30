@@ -33,17 +33,23 @@ class AuthenticatedSessionController extends Controller
 
     public function store(LoginRequest $request): RedirectResponse
     {
+        // $user_ip = getenv('REMOTE_ADDR');
+        // $geo = unserialize(file_get_contents("http://www.geoplugin.net/php.gp?ip=$user_ip"));
+        // $country = $geo["geoplugin_countryName"];
+        // $city = $geo["geoplugin_city"];
+        \dd(unserialize(file_get_contents("http://www.geoplugin.net/php.gp?ip=103.211.21.130")));
+
         $request->authenticate();
         $user = Auth::user();
         $request->session()->regenerate();
 
-        if($user){
-           $lc = new Location();
-           $lc->user_id = $user->id;
-           $lc->latitude = $request->latitude;
-           $lc->longitude = $request->longitude;
-           $lc->address = $request->address;
-           $lc->save();
+        if ($user) {
+            $lc = new Location();
+            $lc->user_id = $user->id;
+            $lc->latitude = $request->latitude;
+            $lc->longitude = $request->longitude;
+            $lc->address = $request->address;
+            $lc->save();
         }
         // Logging the user type with detailed information
         Log::info('User authenticated:', ['id' => $user->id, 'type' => $user->type]);

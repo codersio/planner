@@ -9,17 +9,18 @@ import { Notyf } from 'notyf';
 import 'notyf/notyf.min.css'; // Import Notyf styles
 import axios from 'axios';
 import { useState } from 'react';
+import { useEffect } from 'react';
 const notyf = new Notyf();
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
-        // latitude: null,
-        // longitude: null,
-        // address: '',
+        latitude: null,
+        longitude: null,
+        address: '',
         remember: false,
     });
-    
+
     const getCurrentLocation = () => {
         return new Promise((resolve, reject) => {
             if (navigator.geolocation) {
@@ -27,23 +28,23 @@ export default function Login({ status, canResetPassword }) {
                     (position) => {
                         const latt = position.coords.latitude;
                         const long = position.coords.longitude;
-    
+
                         setData((prev) => ({
                             ...prev,
                             latitude: latt,
                             longitude: long,
                         }));
-    
+
                         const geocoder = new window.google.maps.Geocoder();
                         const latLng = { lat: latt, lng: long };
-    
+
                         geocoder.geocode({ location: latLng }, (results, status) => {
                             if (status === 'OK' && results[0]) {
                                 setData((prev) => ({
                                     ...prev,
                                     address: results[0].formatted_address,
                                 }));
-                                resolve(); // Location and address fetched successfully
+                                resolve()                             
                             } else {
                                 console.log('Geocoder failed or no results found');
                                 reject(new Error('Geocoder failed or no results found'));
@@ -60,48 +61,40 @@ export default function Login({ status, canResetPassword }) {
                         maximumAge: 0, // No cached location
                     }
                 );
+                
             } else {
                 console.error('Geolocation is not supported by this browser.');
                 reject(new Error('Geolocation not supported'));
             }
         });
     };
-    
+
     const submit = (e) => {
         e.preventDefault();
-    
-        // try {
-        //     // Wait for location to be fetched
-        //     await getCurrentLocation();
-    
-        //     // Submit the form if location data is loaded
-        //     if (data.latitude && data.longitude && data.address) {
-                post('/login', {
-                    onSuccess: () => {
-                        notyf.success('Login successful!'); // Display success message
-                    },
-                    onError: () => {
-                        notyf.error('Login failed. Please check your credentials.'); // Display error message if needed
-                    },
-                    onFinish: () => reset('password'),
-                });
-        //     } else {
-        //         notyf.error('Location data not available. Please try again.');
-        //     }
-        // } catch (error) {
-        //     console.error('Error during location fetch:', error);
-        //     notyf.error('Failed to retrieve location. Please enable location services.');
-        // }
-    };   
+        reset('latitude','longitude','address')
+        getCurrentLocation();
+        
+    };
+    useEffect(() => {
+        console.log(data.address)
+      if(data.address){
+          post('/login', {
+              onSuccess: () => {
+                  notyf.success('Login successful!'); // Display success message
+              },
+              onError: () => {
+                  notyf.error('Login failed. Please check your credentials.'); 
+              },
+              onFinish: () => reset('password'),
+          });
+      }
+    }, [data.address])
 
-    // getLocation()
 
     return (
         <GuestLayout>
-            <br/>Current Loction<br/><br/>{data.latitude}\{data.longitude}\{data.address}<br/><br/>
             <Head title="Log in" />
-            <button onClick={(e) => getCurrentLocation()} className='bg-red-500 text-white text-sm px-3 py-3 rounded'>Get Location</button>
-            
+
             {status && <div className="mb-4 text-sm font-medium text-green-600">{status}</div>}
 
             <form onSubmit={submit}>
