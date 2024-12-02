@@ -220,7 +220,7 @@ const Invoice = () => {
                                 </div>
                             </td>
                             <td colSpan={2}>
-                            
+                             c
                             </td>
                         </tr>
                     </tbody>
