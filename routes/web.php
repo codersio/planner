@@ -259,6 +259,7 @@ Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
 Route::get('/sales/add', [SaleController::class, 'create'])->name('sales.create');
 Route::post('/sales/store', [SaleController::class, 'store'])->name('sales.store');
 Route::get('/sales/{id}/edit', [SaleController::class, 'edit'])->name('sales.edit');
+Route::get('/sales/{id}/print', [SaleController::class, 'printSales'])->name('sale.print');
 Route::put('/sales/{id}/edit', [SaleController::class, 'update']);
 Route::delete('/sales/{id}/delete', [SaleController::class, 'destroy'])->name('sales.destroy');
 Route::resource('service-categories', ServiceCategoryController::class);

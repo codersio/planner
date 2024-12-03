@@ -5,12 +5,15 @@ import { FaTrash } from 'react-icons/fa'
 import { Notyf } from 'notyf';
 import 'notyf/notyf.min.css';
 import Multiselect from 'multiselect-react-dropdown';
+import Header from '@/Layouts/Header';
+import Nav from '@/Layouts/Nav';
 
 const notyf = new Notyf();
 function edit({ customers, products, sale, taxes }) {
     const [rows, setRows] = useState(sale.sales_details);
     console.log(sale.sales_details)
     const [totalTax, setTotalTax] = useState(0);
+    const [invoiceType, setInvoiceType] = useState(sale.invoice_type);
 
     const handleAddRow = () => {
         setRows([...rows, { product: '', quantity: 0, price: 0, amount: 0, amountWithTax: 0, selectedTaxes: [] }]);
@@ -84,7 +87,8 @@ function edit({ customers, products, sale, taxes }) {
         email: sale.email,
         discount: sale.discount,
         billing_address: sale.billing_address,
-        sales_details: rows,
+        sales_details: sale.sales_details || [],
+        invoice_type: sale.invoice_type // New field to store invoice type
     })
 
     useEffect(() => {
@@ -93,33 +97,53 @@ function edit({ customers, products, sale, taxes }) {
             sales_details: rows || []    // Ensure rows is an array
         }));
     }, [rows]);
-    
+
     function handleSubmit(e) {
         e.preventDefault();
-        put(route('sales.edit',sale.id),{
+        put(route('sales.edit', sale.id), {
             onSuccess: () => {
                 // Show success notification on successful submission
                 notyf.success('sales updated successfully!');
             },
-            onError: () => {
+            onError: (err) => {
+                console.log(err)
                 // Show error notification if there are errors
                 notyf.error('Failed to add sales. Please check your inputs.');
             }
         })
     }
     return (
-        <AdminLayout>
-            <div className="max-w-5xl p-8 mx-auto bg-white rounded-lg shadow-md">
-                <h2 className="mb-6 text-2xl font-bold text-gray-800">Edit Sales</h2>
+        <div className='w-[83.2%] ml-[11.5rem] absolute right-0 overflow-hidden'>
+            <Header />
+            <Nav />
+            <div className="px-8 mx-auto bg-white rounded-lg shadow-md">
+                <h2 className="mb-6 text-2xl font-bold text-gray-800">Add Invoice</h2>
                 <form onSubmit={handleSubmit} className="flex flex-wrap">
-                    <div className='flex flex-col gap-2 p-2 w-1/2'>
-                        <label htmlFor="">Bill No.</label>
-                        <input onChange={(e) => setData('bill_no', e.target.value)} value={data.bill_no} type="text" className="form-input w-full rounded" placeholder='Enter bill no' />
+                    {/* Invoice Type */}
+                    <div className='flex flex-col w-1/2 gap-2 p-2'>
+                        <label htmlFor="invoiceType">Invoice Type</label>
+                        <select
+                            name="invoiceType"
+                            value={invoiceType}
+                            onChange={(e) => setInvoiceType(e.target.value)}
+                            className='w-full rounded form-select'
+                        >
+                            <option value="">-- Select Invoice Type --</option>
+                            <option value="tax">Tax Invoice</option>
+                            <option value="pi">PI Invoice</option>
+                            <option value="final">Final Invoice</option>
+                        </select>
+                    </div>
+
+                    {/* Fields for Customer Details and Invoice Information */}
+                    <div className='flex flex-col w-1/2 gap-2 p-2'>
+                        <label htmlFor=""> Invoice Number.</label>
+                        <input disabled onChange={(e) => setData('bill_no', e.target.value)} value={data.bill_no} type="text" className="w-full rounded form-input" placeholder='Enter bill no' />
                         {errors.bill_no && <p className="mt-1 text-xs text-red-500">{errors.bill_no}</p>}
                     </div>
-                    <div className='flex flex-col gap-2 p-2 w-1/2'>
+                    <div className='flex flex-col w-1/2 gap-2 p-2'>
                         <label htmlFor="">Status</label>
-                        <select name="status" onChange={(e) => setData('status', e.target.value)} value={data.status} className='form-select w-full rounded' id="">
+                        <select name="status" onChange={(e) => setData('status', e.target.value)} value={data.status} className='w-full rounded form-select' id="">
                             <option value="">-- Select Status --</option>
                             <option value="unpaid">Unpaid</option>
                             <option value="full_paid">Full Paid</option>
@@ -127,65 +151,67 @@ function edit({ customers, products, sale, taxes }) {
                         </select>
                         {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status}</p>}
                     </div>
-                    <div className='flex flex-col gap-2 p-2 w-1/2'>
-                        <label htmlFor="">Sales Date</label>
-                        <input type="date" name='date' onChange={(e) => setData('date', e.target.value)} value={data.date} className="form-input w-full rounded" placeholder='Enter bill no' />
+                    <div className='flex flex-col w-1/2 gap-2 p-2'>
+                        <label htmlFor="">Invoice Date </label>
+                        <input type="date" name='date' onChange={(e) => setData('date', e.target.value)} value={data.date} className="w-full rounded form-input" placeholder='Enter bill no' />
                         {errors.date && <p className="mt-1 text-xs text-red-500">{errors.date}</p>}
                     </div>
-                    <div className='flex flex-col gap-2 p-2 w-1/2'>
+                    <div className='flex flex-col w-1/2 gap-2 p-2'>
                         <label htmlFor="">Customer Name</label>
-                        <select name="" onChange={(e) => setData('customer_id', e.target.value)} value={data.customer_id} className='form-select w-full rounded' id="">
+                        <select name="" onChange={(e) => setData('customer_id', e.target.value)} value={data.customer_id} className='w-full rounded form-select' id="">
                             <option value="">-- Select Customer --</option>
                             {
                                 customers && customers.map((cust, i) => (
-                                    <option key={i} value={cust.user_id}>{cust.first_name + ' ' + cust.middle_name + ' ' + cust.last_name}</option>
+                                    <option key={i} value={cust.user_id}>{cust.name}</option>
                                 ))
                             }
                         </select>
                         {errors.customer_id && <p className="mt-1 text-xs text-red-500">{errors.customer_id}</p>}
                     </div>
-                    <div className='flex flex-col gap-2 p-2 w-1/2'>
+                    <div className='flex flex-col w-1/2 gap-2 p-2'>
                         <label htmlFor="">Mobile No</label>
-                        <input type="tel" onChange={(e) => setData('mobile_no', e.target.value)} value={data.mobile_no} className="form-input w-full rounded" placeholder='Enter mobile no' />
+                        <input type="tel" onChange={(e) => setData('mobile_no', e.target.value)} value={data.mobile_no} className="w-full rounded form-input" placeholder='Enter mobile no' />
                         {errors.mobile_no && <p className="mt-1 text-xs text-red-500">{errors.mobile_no}</p>}
                     </div>
-                    <div className='flex flex-col gap-2 p-2 w-1/2'>
-                        <label htmlFor="">AMC Type</label>
-                        <select name="" onChange={(e) => setData('amc_type', e.target.value)} value={data.amc_type} className='form-select w-full rounded' id="">
-                            <option value="no_amc">No AMC</option>
-                            <option value="amc">AMC</option>
-                        </select>
-                        {errors.amc_type && <p className="mt-1 text-xs text-red-500">{errors.amc_type}</p>}
-                    </div>
-                    <div className='flex flex-col gap-2 p-2 w-1/2'>
+                    {/* <div className='flex flex-col w-1/2 gap-2 p-2'>
+                    <label htmlFor="">AMC Type</label>
+                    <select name="" onChange={(e) => setData('amc_type', e.target.value)} value={data.amc_type} className='w-full rounded form-select' id="">
+                        <option value="no_amc">No AMC</option>
+                        <option value="amc">AMC</option>
+                    </select>
+                    {errors.amc_type && <p className="mt-1 text-xs text-red-500">{errors.amc_type}</p>}
+                </div> */}
+                    <div className='flex flex-col w-1/2 gap-2 p-2'>
                         <label htmlFor="">Email</label>
-                        <input type="email" onChange={(e) => setData('email', e.target.value)} value={data.email} className="form-input w-full rounded" placeholder='Enter email' />
+                        <input type="email" onChange={(e) => setData('email', e.target.value)} value={data.email} className="w-full rounded form-input" placeholder='Enter email' />
                         {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
                     </div>
-                    <div className='flex flex-col gap-2 p-2 w-1/2'>
+                    <div className='flex flex-col w-1/2 gap-2 p-2'>
                         <label htmlFor="">Discount</label>
-                        <input type="number" onChange={(e) => setData('discount', e.target.value)} value={data.discount} className="form-input w-full rounded" placeholder='Enter discount' />
+                        <input type="number" onChange={(e) => setData('discount', e.target.value)} value={data.discount} className="w-full rounded form-input" placeholder='Enter discount' />
                         {errors.discount && <p className="mt-1 text-xs text-red-500">{errors.discount}</p>}
                     </div>
-                    <div className='flex flex-col gap-2 p-2 w-full'>
+                    <div className='flex flex-col w-full gap-2 p-2'>
                         <label htmlFor="">Billing Address</label>
-                        <textarea name="" onChange={(e) => setData('billing_address', e.target.value)} value={data.billing_address} id="" rows={2} className='form-textarea resize-none w-full rounded'></textarea>
+                        <textarea name="" onChange={(e) => setData('billing_address', e.target.value)} value={data.billing_address} id="" rows={2} className='w-full rounded resize-none form-textarea'></textarea>
                         {errors.billing_address && <p className="mt-1 text-xs text-red-500">{errors.billing_address}</p>}
                     </div>
-                    <hr />
+
+                    {/* Sales Details Table */}
                     <div className='w-full py-2'>
                         <h1 className='text-xl font-semibold text-gray-600'>Sales Details</h1>
                     </div>
+
                     <div className='w-full py-2'>
                         <table className='w-full'>
                             <thead>
                                 <tr>
-                                    <th className='border border-gray-300 p-2'>Product</th>
-                                    <th className='border border-gray-300 p-2'>Quantity</th>
-                                    <th className='border border-gray-300 p-2'>Price (Af)</th>
-                                    <th className='border border-gray-300 p-2'>Tax</th>
-                                    <th className='border border-gray-300 p-2'>Amount (Af)</th>
-                                    <th className='border border-gray-300 p-2'>Action</th>
+                                    <th className='p-2 border border-gray-300'>Service</th>
+                                    <th className='p-2 border border-gray-300'>Quantity</th>
+                                    <th className='p-2 border border-gray-300'>Price (Af)</th>
+                                    <th className='p-2 border border-gray-300'>Tax</th>
+                                    <th className='p-2 border border-gray-300'>Amount (Af)</th>
+                                    <th className='p-2 border border-gray-300'>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -193,14 +219,12 @@ function edit({ customers, products, sale, taxes }) {
                                     <tr key={index}>
                                         <td className='p-2'>
                                             <select
-                                                className="form-select rounded w-full"
+                                                className="w-full rounded form-select"
                                                 value={row.product}
-                                                onChange={(e) =>
-                                                    handleChange(index, 'product', e.target.value)
-                                                }
+                                                onChange={(e) => handleChange(index, 'product', e.target.value)}
                                             >
-                                                <option value="">-- Select Product --</option>
-                                                {products && products.map((pr, i) => (
+                                                <option value="">-- Select Service --</option>
+                                                {products.map((pr, i) => (
                                                     <option key={i} value={pr.name}>{pr.name}</option>
                                                 ))}
                                             </select>
@@ -208,28 +232,24 @@ function edit({ customers, products, sale, taxes }) {
                                         <td className='p-2'>
                                             <input
                                                 type="number"
-                                                className='form-input rounded w-full'
+                                                className='w-full rounded form-input'
                                                 value={row.quantity}
-                                                onChange={(e) =>
-                                                    handleChange(index, 'quantity', e.target.value)
-                                                }
+                                                onChange={(e) => handleChange(index, 'quantity', e.target.value)}
                                             />
                                         </td>
                                         <td className='p-2'>
                                             <input
                                                 type="number"
-                                                className='form-input rounded w-full'
+                                                className='w-full rounded form-input'
                                                 value={row.price}
-                                                onChange={(e) =>
-                                                    handleChange(index, 'price', e.target.value)
-                                                }
+                                                onChange={(e) => handleChange(index, 'price', e.target.value)}
                                             />
                                         </td>
                                         <td className='p-2'>
                                             <Multiselect
                                                 options={taxes.map(tax => ({
-                                                    name: `${tax.name} (${tax.percent}%)`, // Display format
-                                                    percent: tax.percent, // Keeping percent for calculations if needed
+                                                    name: `${tax.name} (${tax.percent}%)`,
+                                                    percent: tax.percent
                                                 }))}
                                                 selectedValues={row.selectedTaxes}
                                                 onSelect={(selectedList) => handleTaxSelect(index, selectedList)}
@@ -240,38 +260,37 @@ function edit({ customers, products, sale, taxes }) {
                                         <td className='p-2'>
                                             <input
                                                 type="number"
-                                                className='form-input rounded w-full'
+                                                className='w-full rounded form-input'
                                                 value={row.amountWithTax.toFixed(2)}
                                                 readOnly
                                             />
                                         </td>
                                         <td className='p-2'>
-                                            {index !== 0 &&
-                                                <button type='button'
-                                                    className='flex gap-1 items-center text-sm font-medium text-red-500'
+                                            {index !== 0 && (
+                                                <button
+                                                    type='button'
+                                                    className='flex items-center gap-1 text-sm font-medium text-red-500'
                                                     onClick={() => handleDeleteRow(index)}
                                                 >
                                                     <FaTrash size={15} /><span>Delete</span>
                                                 </button>
-                                            }
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        <button type='button'
-                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-                            onClick={handleAddRow}
-                        >
+                        <button type='button' className="px-4 py-2 mt-4 text-white bg-blue-500 rounded" onClick={handleAddRow}>
                             Add Row
                         </button>
                     </div>
+
                     <div className='w-full py-5'>
-                        <button className='py-2 px-6 text-sm bg-rose-600 rounded font-medium text-white'>Update Sale</button>
+                        <button className='px-6 py-2 text-sm font-medium text-white rounded bg-rose-600'>Update Sale</button>
                     </div>
                 </form>
             </div>
-        </AdminLayout>
+        </div>
     )
 }
 

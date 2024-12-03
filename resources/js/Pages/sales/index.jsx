@@ -7,6 +7,7 @@ import 'notyf/notyf.min.css';
 import Modal from '@/Components/Modal';
 import Header from '@/Layouts/Header';
 import Nav from '@/Layouts/Nav';
+import { FaPrint } from 'react-icons/fa';
 
 const notyf = new Notyf();
 export default function index({sales}) {
@@ -90,7 +91,7 @@ export default function index({sales}) {
                                         { formatLabel(sale.status) }
                                     </td>
                                     <td className='flex gap-1 p-3'>
-                                        {/* <button className='flex items-center gap-1 px-2 py-1 text-sm font-medium text-white rounded bg-emerald-500'><span>View</span></button> */}
+                                        <Link href={route('sale.print',sale.id)} className='flex items-center gap-1 px-2 py-1 text-sm font-medium text-white rounded bg-emerald-500'><span><FaPrint/></span></Link>
                                         <Link href={`/sales/${sale.id}/edit`} className='flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-blue-500 rounded'><span>Edit</span></Link>
                                         <button type='button' onClick={() => handleDelete(sale.id)} className='flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-red-500 rounded'><span>Delete</span></button>
                                     </td>

@@ -15,81 +15,22 @@ export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
-        latitude: null,
-        longitude: null,
-        address: '',
         remember: false,
     });
 
-    const getCurrentLocation = () => {
-        return new Promise((resolve, reject) => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const latt = position.coords.latitude;
-                        const long = position.coords.longitude;
-
-                        setData((prev) => ({
-                            ...prev,
-                            latitude: latt,
-                            longitude: long,
-                        }));
-
-                        const geocoder = new window.google.maps.Geocoder();
-                        const latLng = { lat: latt, lng: long };
-
-                        geocoder.geocode({ location: latLng }, (results, status) => {
-                            if (status === 'OK' && results[0]) {
-                                setData((prev) => ({
-                                    ...prev,
-                                    address: results[0].formatted_address,
-                                }));
-                                resolve()                             
-                            } else {
-                                console.log('Geocoder failed or no results found');
-                                reject(new Error('Geocoder failed or no results found'));
-                            }
-                        });
-                    },
-                    (error) => {
-                        console.error('Error getting location: ', error);
-                        reject(error);
-                    },
-                    {
-                        enableHighAccuracy: true, // This ensures the most accurate position
-                        timeout: 5000, // Set a timeout (5 seconds in this example)
-                        maximumAge: 0, // No cached location
-                    }
-                );
-                
-            } else {
-                console.error('Geolocation is not supported by this browser.');
-                reject(new Error('Geolocation not supported'));
-            }
-        });
-    };
-
     const submit = (e) => {
         e.preventDefault();
-        reset('latitude','longitude','address')
-        getCurrentLocation();
+        post('/login', {
+            onSuccess: () => {
+                notyf.success('Login successful!'); // Display success message
+            },
+            onError: () => {
+                notyf.error('Login failed. Please check your credentials.'); 
+            },
+            onFinish: () => reset('password'),
+        });
         
     };
-    useEffect(() => {
-        console.log(data.address)
-      if(data.address){
-          post('/login', {
-              onSuccess: () => {
-                  notyf.success('Login successful!'); // Display success message
-              },
-              onError: () => {
-                  notyf.error('Login failed. Please check your credentials.'); 
-              },
-              onFinish: () => reset('password'),
-          });
-      }
-    }, [data.address])
-
 
     return (
         <GuestLayout>

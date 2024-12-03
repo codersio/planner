@@ -122,9 +122,9 @@ const Projects = ({ user, projects, user_type, notif }) => {
                                         {proj.estimate_time}hrs
                                     </td>
                                     <td className="p-3 border">
-                                        {proj.priority == 1
+                                        {proj.priority == 0
                                             ? "Low"
-                                            : proj.priority == 2
+                                            : proj.priority == 1
                                             ? "Medium"
                                             : "High"}
                                     </td>

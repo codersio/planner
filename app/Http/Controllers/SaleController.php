@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
 use App\Models\ProductService;
 use App\Models\Sale;
 use App\Models\Tax;
@@ -82,7 +83,7 @@ class SaleController extends Controller
         $lastId = $lastSale ? $lastSale->id : 0;
 
         // Generate the new invoice number in the format "INVYYYYMMDD<ID+1>"
-        $invoiceNumber = 'INV' . $date . ($lastId + 1);
+        $invoiceNumber = 'RSP/' . $date .'/'. ($lastId + 1);
         $customers = DB::table('clients')->join('users', 'users.id', 'clients.user_id')->get();
         // dd($customers);
         $products = ProductService::all();
@@ -126,9 +127,9 @@ class SaleController extends Controller
     public function edit($id)
     {
         $sale = Sale::join('tbl_user', 'tbl_user.user_id', '=', 'sales.customer_id')->where('sales.id', $id)->first();
-        $customers = DB::table('tbl_user')->get();
+        $customers = DB::table('clients')->join('users', 'users.id', 'clients.user_id')->get();
         $taxs = Tax::all();
-        $products = DB::table('product')->join('products_category', 'products_category.id', '=', 'product.category_id')->select('products_category.name', 'product.id')->get();
+        $products = ProductService::all();
         return Inertia::render('sales/edit', ['customers' => $customers, 'products' => $products, 'taxes' => $taxs, 'sale' => $sale]);
     }
 
@@ -142,7 +143,7 @@ class SaleController extends Controller
             'date' => 'required',
             'billing_address' => 'required',
             'status' => 'required',
-            'amc_type' => 'required',
+            // 'amc_type' => 'required',
             'mobile_no' => 'required',
             'email' => 'required',
         ]);
@@ -155,5 +156,11 @@ class SaleController extends Controller
     {
         Sale::findOrFail($id)->delete();
         return \redirect()->to(\route('sales.index'));
+    }
+
+    public function printSales($id){
+        $sale = Sale::findOrFail($id);
+        $cst = DB::table('clients')->join('users', 'users.id', 'clients.user_id')->where('users.id',$sale->customer_id)->first();;
+        return Inertia::render('print/invoice',\compact('sale','cst'));
     }
 }

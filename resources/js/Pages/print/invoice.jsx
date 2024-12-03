@@ -1,7 +1,10 @@
+import { Link } from "@inertiajs/react";
 import React from "react";
 import { useRef } from "react";
-
-const Invoice = () => {
+import { FaPrint } from "react-icons/fa";
+import num2word from "num2Word";
+import { Fragment } from "react";
+const Invoice = ({ sale, cst }) => {
     const printInv = useRef();
 
     function handlePrint(event) {
@@ -12,7 +15,7 @@ const Invoice = () => {
         <div className="grid place-items-center">
             <div className="p-8 w-[800px]">
                 <div className="flex flex-col justify-center items-center space-y-1">
-                    <h1 className="text-2xl font-bold">Profoma Invoice</h1>
+                    <h1 className="text-2xl font-bold">{sale && sale.invoice_type == 'pi' ? 'Profoma Invoice' : 'Tax Invoice'}</h1>
                     <p className="text-sm text-gray-600 font-medium">
                         CIN NO. U74999WB2017PTC219565
                     </p>
@@ -31,13 +34,25 @@ const Invoice = () => {
                             <p className="text-sm text-blue-600">
                                 Email - proyrsp@gmail.com
                             </p>
+                            {
+                                sale && sale.invoice_type == "tax" && (
+                                    <Fragment>
+                                        <p className="text-sm text-gray-600">
+                                            GST : 19AAICR1289D1Z7
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            SAC No : 999490
+                                        </p>
+                                    </Fragment>
+                                )
+                            }
                         </div>
                         <div className="w-1/3 flex flex-col">
                             <div className="h-1/3 p-1 px-2 border-b border-black">
                                 <p className="text-sm text-zinc-900 font-bold">
                                     Invoice No.
                                 </p>
-                                <p className="text-sm">RSP/{"  "}/</p>
+                                <p className="text-sm">{sale.bill_no}</p>
                             </div>
                             <div className="h-1/3 p-1 px-2 border-b border-black flex items-center">
                                 <p className="text-sm">Delivery note : N/A</p>
@@ -51,7 +66,7 @@ const Invoice = () => {
                                 <p className="text-sm text-zinc-900 font-bold">
                                     Invoice Date.
                                 </p>
-                                <p className="text-sm">...../...../20</p>
+                                <p className="text-sm">{new Date(sale.date).toLocaleDateString('en-GB')}</p>
                             </div>
                             <div className="h-1/3 p-1 px-2 border-b border-black">
                                 <p className="text-sm text-zinc-900 font-bold">
@@ -70,10 +85,16 @@ const Invoice = () => {
                     </div>
                     <div className="w-full flex border-t border-black">
                         <div className="w-1/3 p-3 space-y-2 border-r border-black">
-                            <p className="text-sm font-semibold">
+                            <p className="text-sm font-semibold text-gray-600">
                                 Bill To.
                                 <br />
-                                The
+                                The,
+                                <br />
+                                <div className="space-y-1">
+                                    <span className="block pt-4 text-gray-800">Name: {cst.name}</span>
+                                    <span className="block text-gray-800">Email: {cst.email}</span>
+                                    <span className="block text-gray-800">Billing Address: {sale.billing_address}</span>
+                                </div>
                             </p>
                         </div>
                         <div className="w-1/3 flex flex-col">
@@ -124,73 +145,71 @@ const Invoice = () => {
                                 <th className="py-2 px-2 border-r border-b border-black">
                                     Contract Value
                                 </th>
+                                <th className="py-2 px-2 border-r border-b border-black">
+                                    Tax
+                                </th>
                                 <th className="py-2 px-2 border-b border-black">
                                     Amount in Rs.
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td className="py-2 px-2 border-b border-r border-black">
-                                    1
-                                </td>
-                                <td className="py-2 px-2 border-b border-r border-black">
-                                    Test Service
-                                </td>
-                                <td className="py-2 px-2 border-b border-r border-black">
-                                    Test Service
-                                </td>
-                                <td className="py-2 px-2 border-b border-r border-black">
-                                    Test Service
-                                </td>
-                                <td className="py-2 px-2 border-b border-black">
-                                    Test Service
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="py-2 px-2 border-r border-black">
-                                    1
-                                </td>
-                                <td className="py-2 px-2 border-r border-black">
-                                    Test Service
-                                </td>
-                                <td className="py-2 px-2 border-r border-black">
-                                    Test Service
-                                </td>
-                                <td className="py-2 px-2 border-r border-black">
-                                    Test Service
-                                </td>
-                                <td className="py-2 px-2 border-black">
-                                    Test Service
-                                </td>
-                            </tr>
+                            {
+                                sale.sales_details.map((sl, i) => (
+                                    <tr>
+                                        <td className="py-2 px-2 border-b border-r border-black">
+                                            {i + 1}
+                                        </td>
+                                        <td className="py-2 px-2 border-b border-r border-black">
+                                            {sl.product}
+                                        </td>
+                                        <td className="py-2 px-2 border-b border-r border-black">
+                                            {sl.quantity}
+                                        </td>
+                                        <td className="py-2 px-2 border-b border-r border-black">
+                                            &#8377; {sl.amount}
+                                        </td>
+                                        <td className="py-2 px-2 border-b border-r border-black">
+                                            {sl.selectedTaxes && sl.selectedTaxes.length !== 0 ? sl.selectedTaxes.map((t, i) => (<span>{t.name}</span>)) : 'n/a'}
+                                        </td>
+                                        <td className="py-2 px-2 border-b border-black">
+                                            &#8377; {sl.amountWithTax}
+                                        </td>
+                                    </tr>
+                                ))
+                            }
+
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td
-                                    colSpan={4}
+                                    colSpan={5}
                                     className="px-2 py-2 border-t border-black"
                                 ></td>
                                 <td className="px-2 py-2 border-t border-l border-black"></td>
                             </tr>
                             <tr>
                                 <td
-                                    colSpan={4}
+                                    colSpan={5}
                                     className="px-2 py-2 border-t border-b border-black"
                                 >
                                     <p className="text-sm font-semibold">
-                                        Total Amount :
+                                        Total Amount : &#8377; {sale.sales_details.reduce((sum, detail) => {
+                                            return sum + detail.amountWithTax;
+                                        }, 0)}
                                     </p>
                                 </td>
                                 <td className="px-2 py-2 border-t border-l border-black"></td>
                             </tr>
                             <tr>
                                 <td
-                                    colSpan={3}
+                                    colSpan={4}
                                     className="px-2 py-2 border-black"
                                 >
-                                    <p className="text-sm  font-bold">
-                                        Rs. (In Words) :
+                                    <p className="text-sm font-semibold capitalize">
+                                        Rs. (In Words) : {num2word(sale.sales_details.reduce((sum, detail) => {
+                                            return sum + detail.amountWithTax;
+                                        }, 0))}
                                     </p>
                                 </td>
                                 <td
@@ -210,6 +229,12 @@ const Invoice = () => {
                     <tbody>
                         <tr>
                             <td colSpan={3}>
+                                {
+                                    sale && sale.invoice_type == "tax" && (
+                                        <div className="text-[13px] font-semibold p-3 w-96 text-gray-600">
+                                            <p>Note : Bill Not paid within due date of issued then 2% interest will be charged as per MSME Rules.<br/> All disputes subject to Jurisdiction only.</p>
+                                        </div>
+                                    )}
                                 <div className="py-2 px-3 space-y-1">
                                     <p className="text-sm font-semibold">Company Bank Details</p>
                                     <p className="text-sm text-gray-600">RSP GREEN DEVELOPMENT & LABORATORIES PVT. LTD.</p>
@@ -220,12 +245,20 @@ const Invoice = () => {
                                 </div>
                             </td>
                             <td colSpan={2}>
-                             c
+                                <p className="text-sm font-medium">Authorized Signatory</p>
                             </td>
                         </tr>
                     </tbody>
                 </table>
+                <div className="py-8 flex justify-center items-center gap-2 print:hidden">
+                    <button onClick={handlePrint} className="flex gap-1 items-center bg-gray-600 px-5 py-1.5 rounded text-white">
+                        <FaPrint />
+                        <span>Print</span>
+                    </button>
+                    <Link href="/sales" className="bg-red-500 text-white px-5 py-1.5 block rounded">Back</Link>
+                </div>
             </div>
+
         </div>
     );
 };

@@ -18,9 +18,9 @@ export default function DropdownMenu({ icon, name, items, user }) {
       setHeight(0);
     }
   }, [dropdown]);
-  console.log(props.auth.user)
+  console.log(props)
   const renderItems = (items) => {
-    return (props.auth.user.roles[0]?.name === "admin" ? items : items.filter(item => props.permission.includes(item.perm))).map((item, index) => (      
+    return (props.auth.user.type === 1 ? items : items.filter(item => props.permission.includes(item.perm))).map((item, index) => (      
       <li key={index}>
         {item.subItems ? (
           // Recursive dropdown for nested sub-items

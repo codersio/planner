@@ -147,7 +147,7 @@ function create({ customers, products, taxes,invoiceNumber }) {
                         {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status}</p>}
                     </div>
                     <div className='flex flex-col w-1/2 gap-2 p-2'>
-                        <label htmlFor="">nvoice Date </label>
+                        <label htmlFor="">Invoice Date </label>
                         <input type="date" name='date' onChange={(e) => setData('date', e.target.value)} value={data.date} className="w-full rounded form-input" placeholder='Enter bill no' />
                         {errors.date && <p className="mt-1 text-xs text-red-500">{errors.date}</p>}
                     </div>
@@ -157,7 +157,7 @@ function create({ customers, products, taxes,invoiceNumber }) {
                             <option value="">-- Select Customer --</option>
                             {
                                 customers && customers.map((cust, i) => (
-                                    <option key={i} value={cust.user_id}>{cust.first_name + ' ' + cust.middle_name + ' ' + cust.last_name}</option>
+                                    <option key={i} value={cust.user_id}>{cust.name}</option>
                                 ))
                             }
                         </select>
@@ -201,7 +201,7 @@ function create({ customers, products, taxes,invoiceNumber }) {
                         <table className='w-full'>
                             <thead>
                                 <tr>
-                                    <th className='p-2 border border-gray-300'>Product</th>
+                                    <th className='p-2 border border-gray-300'>Service</th>
                                     <th className='p-2 border border-gray-300'>Quantity</th>
                                     <th className='p-2 border border-gray-300'>Price (Af)</th>
                                     {invoiceType === 'tax' && (
@@ -220,7 +220,7 @@ function create({ customers, products, taxes,invoiceNumber }) {
                                                 value={row.product}
                                                 onChange={(e) => handleChange(index, 'product', e.target.value)}
                                             >
-                                                <option value="">-- Select Product --</option>
+                                                <option value="">-- Select Service --</option>
                                                 {products.map((pr, i) => (
                                                     <option key={i} value={pr.name}>{pr.name}</option>
                                                 ))}

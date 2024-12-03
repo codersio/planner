@@ -132,6 +132,7 @@ class EmployeeController extends Controller
             ->select('employees.phone', 'employees.address', 'employees.joinning_date', 'users.name', 'users.email', 'users.id', 'users.password')->where('users.id', $id)->first();
         $userss = Auth::user();
         $user = Auth::user()->name;
+        // \dd($employee);
         if ($userss) {
             // Ensure permissions are assigned and fetched correctly
             $user_type = $userss->getAllPermissions()->pluck('name')->toArray();

@@ -174,7 +174,7 @@ const Nav = ({ user_type, usrrr }) => {
                             {
                                 name: "Timesheet",
                                 link: "/daily-status",
-                                perm: "view_timesheet",
+                                perm: "view_timsheet",
                             },
                             {
                                 name: "Tasks",
@@ -238,7 +238,7 @@ const Nav = ({ user_type, usrrr }) => {
                             // { name: 'Reports', link: '/reports-get' }
                         ]}
                     />
-                    {props.auth.user.roles[0]?.name === "admin" || permissions.includes("view_role") && (
+                    {props.auth.user.roles[0]?.name === "admin" && (
                         <li
                             className={
                                 url === "/roles-permission-details"
