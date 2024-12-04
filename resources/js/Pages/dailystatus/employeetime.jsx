@@ -1,35 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import moment from 'moment';
-import { useForm } from '@inertiajs/inertia-react';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import moment from "moment";
+import { useForm } from "@inertiajs/inertia-react";
 
-import { usePage } from '@inertiajs/react';
+import { usePage } from "@inertiajs/react";
 
 import { CgPlayTrackNextO } from "react-icons/cg";
 import { BiSkipPreviousCircle } from "react-icons/bi";
 import { FaPlus } from "react-icons/fa6";
 import { FaXmark } from "react-icons/fa6";
-import Header from '@/Layouts/Header';
-import Nav from '@/Layouts/Nav';
+import Header from "@/Layouts/Header";
+import Nav from "@/Layouts/Nav";
 import { FaMessage } from "react-icons/fa6";
-import 'ldrs/waveform'
+import "ldrs/waveform";
 
 // Default values shown
 
-const Timesheet = ({ leave, user, user_type, permissions ,notif,userid,employee}) => {
+const Timesheet = ({
+    leave,
+    user,
+    user_type,
+    permissions,
+    notif,
+    userid,
+    employee,
+}) => {
     // console.log(permissions)
     const [modal, setModal] = useState(false);
     const [modalData, setModalData] = useState({ index: null, date: null });
 
     const [loading, setLoading] = useState(true);
     // console.log(employee.id)
-const empl = { id: userid };
-useEffect(() => {
-    // Simulate an async operation like fetching data or waiting for assets to load
-    setTimeout(() => {
-        setLoading(false);
-    }, 10); // Adjust the delay as needed
-}, []);
+    const empl = { id: userid };
+    useEffect(() => {
+        // Simulate an async operation like fetching data or waiting for assets to load
+        setTimeout(() => {
+            setLoading(false);
+        }, 10); // Adjust the delay as needed
+    }, []);
 
     // Function to handle opening the modal and setting modal data
     const handleOpenModal = (index, date) => {
@@ -52,33 +60,40 @@ useEffect(() => {
     const { data, setData, post, errors } = useForm({
         timesheets: [],
     });
-    const [selectedWeek, setSelectedWeek] = useState(moment().startOf('isoWeek').format('YYYY-MM-DD'));
+    const [selectedWeek, setSelectedWeek] = useState(
+        moment().startOf("isoWeek").format("YYYY-MM-DD")
+    );
     const [holidays, setHolidays] = useState([]);
 
-useEffect(() => {
-    axios.get(`/getProjectTasksEmployess/${employee.id}`)
-        .then(response => {
-            const data = response.data || {};
-            console.log("Fetched Project Tasks Data:", data); // Debugging line to check data
-            setTaskMapping(data); // Correctly set task mapping state
+    useEffect(() => {
+        axios
+            .get(`/getProjectTasksEmployess/${employee.id}`)
+            .then((response) => {
+                const data = response.data || {};
+                console.log("Fetched Project Tasks Data:", data); // Debugging line to check data
+                setTaskMapping(data); // Correctly set task mapping state
 
-            // Extract and map projects
-            setProjects(Object.keys(data).map(projectId => ({
-                id: projectId,
-                project_name: data[projectId].project_name,
-                tasks: data[projectId].tasks  // Include tasks for rendering
-            })));
-        })
-        .catch(error => console.error('Error fetching project tasks:', error));
+                // Extract and map projects
+                setProjects(
+                    Object.keys(data).map((projectId) => ({
+                        id: projectId,
+                        project_name: data[projectId].project_name,
+                        tasks: data[projectId].tasks, // Include tasks for rendering
+                    }))
+                );
+            })
+            .catch((error) =>
+                console.error("Error fetching project tasks:", error)
+            );
 
-    axios.get('/holidays-fetch')
-        .then(response => {
-            console.log("Fetched Holidays Data:", response.data);  // Debugging line
-            setHolidays(response.data);
-        })
-        .catch(error => console.error('Error fetching holidays:', error));
-}, [employee.id]);
-
+        axios
+            .get("/holidays-fetch")
+            .then((response) => {
+                console.log("Fetched Holidays Data:", response.data); // Debugging line
+                setHolidays(response.data);
+            })
+            .catch((error) => console.error("Error fetching holidays:", error));
+    }, [employee.id]);
 
     const [status, setStatus] = useState(null);
     const [is_approved, setIsApproved] = useState(null);
@@ -87,13 +102,14 @@ useEffect(() => {
         // console.log('Week Data:', selectedWeek);
     }, [selectedWeek]);
     useEffect(() => {
-        console.log('Updated Week Data:', weekData);
+        console.log("Updated Week Data:", weekData);
     }, [weekData]);
     const fetchWeekData = (week) => {
-        axios.get(`/timesheets/${week}/${employee.id}`)
-            .then(response => {
+        axios
+            .get(`/timesheets/${week}/${employee.id}`)
+            .then((response) => {
                 // console.log(response);
-                const fetchedData = response.data.map(entry => {
+                const fetchedData = response.data.map((entry) => {
                     const entries = entry.entries || {};
                     const formattedEntry = {
                         project_id: entry.project_id,
@@ -113,35 +129,46 @@ useEffect(() => {
                 } else {
                     setNoData(false);
                     setWeekData(fetchedData);
-                    setData('timesheets', fetchedData);
+                    setData("timesheets", fetchedData);
                     if (fetchedData[0] && fetchedData[0].status !== undefined) {
                         setStatus(fetchedData[0].status);
                     }
-                     if (fetchedData[0] && fetchedData[0].is_approved !== undefined) {
-                    setIsApproved(fetchedData[0].is_approved); // Define `setIsApproved` if needed
-                }
+                    if (
+                        fetchedData[0] &&
+                        fetchedData[0].is_approved !== undefined
+                    ) {
+                        setIsApproved(fetchedData[0].is_approved); // Define `setIsApproved` if needed
+                    }
                 }
                 calculateTotals(fetchedData); // Calculate totals initially
             })
-            .catch(error => console.error('Error fetching the timesheet data!', error));
+            .catch((error) =>
+                console.error("Error fetching the timesheet data!", error)
+            );
     };
-
 
     const getCurrentDate = (i) => {
-        return moment(selectedWeek).startOf('isoWeek').add(i, 'days').format('YYYY-MM-DD');
+        return moment(selectedWeek)
+            .startOf("isoWeek")
+            .add(i, "days")
+            .format("YYYY-MM-DD");
     };
     const CurrentDate = (i) => {
-        const date = moment(selectedWeek).startOf('isoWeek').add(i, 'days');
-        const dayName = date.format('ddd'); // Day name (e.g., Mon)
-        const dayDate = date.format('MMM D'); // Date (e.g., Aug 5)
+        const date = moment(selectedWeek).startOf("isoWeek").add(i, "days");
+        const dayName = date.format("ddd"); // Day name (e.g., Mon)
+        const dayDate = date.format("MMM D"); // Date (e.g., Aug 5)
         return { dayName, dayDate };
-    }
+    };
     const handlePreviousWeek = () => {
-        setSelectedWeek(moment(selectedWeek).subtract(1, 'weeks').format('YYYY-MM-DD'));
+        setSelectedWeek(
+            moment(selectedWeek).subtract(1, "weeks").format("YYYY-MM-DD")
+        );
     };
 
     const handleNextWeek = () => {
-        setSelectedWeek(moment(selectedWeek).add(1, 'weeks').format('YYYY-MM-DD'));
+        setSelectedWeek(
+            moment(selectedWeek).add(1, "weeks").format("YYYY-MM-DD")
+        );
     };
 
     const leaveStartDate = new Date(leave?.sdate);
@@ -152,43 +179,47 @@ useEffect(() => {
         return currentDate >= leaveStartDate && currentDate <= leaveEndDate;
     };
 
-const isHoliday = (date) => {
-    return holidays.some(holiday => {
-        const startDate = moment(holiday.start_date, 'YYYY-MM-DD');
-        const endDate = moment(holiday.end_date, 'YYYY-MM-DD');
-        const currentDate = moment(date, 'YYYY-MM-DD');
-        return currentDate.isBetween(startDate, endDate, 'day', '[]');
-    });
-};
+    const isHoliday = (date) => {
+        return holidays.some((holiday) => {
+            const startDate = moment(holiday.start_date, "YYYY-MM-DD");
+            const endDate = moment(holiday.end_date, "YYYY-MM-DD");
+            const currentDate = moment(date, "YYYY-MM-DD");
+            return currentDate.isBetween(startDate, endDate, "day", "[]");
+        });
+    };
 
-// New function to check if an employee is assigned to work on a holiday
-const isAssignedToWorkOnHoliday = (date, employeeId) => {
-    return holidays.some(holiday => {
-        const startDate = moment(holiday.start_date, 'YYYY-MM-DD');
-        const endDate = moment(holiday.end_date, 'YYYY-MM-DD');
-        const currentDate = moment(date, 'YYYY-MM-DD');
+    // New function to check if an employee is assigned to work on a holiday
+    const isAssignedToWorkOnHoliday = (date, employeeId) => {
+        return holidays.some((holiday) => {
+            const startDate = moment(holiday.start_date, "YYYY-MM-DD");
+            const endDate = moment(holiday.end_date, "YYYY-MM-DD");
+            const currentDate = moment(date, "YYYY-MM-DD");
 
-        // Check if the date is a holiday
-        const isHoliday = currentDate.isBetween(startDate, endDate, 'day', '[]');
+            // Check if the date is a holiday
+            const isHoliday = currentDate.isBetween(
+                startDate,
+                endDate,
+                "day",
+                "[]"
+            );
 
-        // If it is a holiday, check if the employee is assigned to work
-        return isHoliday && holiday.assigned_employees.some(emp => emp.id === employeeId);
-    });
-};
-
-
-
-
+            // If it is a holiday, check if the employee is assigned to work
+            return (
+                isHoliday &&
+                holiday.assigned_employees.some((emp) => emp.id === employeeId)
+            );
+        });
+    };
 
     const handleProjectChange = (index, projectId) => {
         const newWeekData = [...weekData];
         newWeekData[index] = {
             ...newWeekData[index],
             project_id: projectId,
-            task_id: '',
+            task_id: "",
         };
         setWeekData(newWeekData);
-        setData('timesheets', newWeekData);
+        setData("timesheets", newWeekData);
     };
 
     const handleTaskChange = (index, taskId) => {
@@ -198,7 +229,7 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
             task_id: taskId,
         };
         setWeekData(newWeekData);
-        setData('timesheets', newWeekData);
+        setData("timesheets", newWeekData);
     };
 
     // const handleTimeChange = (index, date, value) => {
@@ -221,12 +252,12 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
             ...entry,
             date: getCurrentDate(index % 7),
         }));
-        setData('timesheets', updatedTimesheets);
-        console.log('Data being sent:', updatedTimesheets);
-        axios.post('timesheets-store', {
+        setData("timesheets", updatedTimesheets);
+        console.log("Data being sent:", updatedTimesheets);
+        axios.post("timesheets-store", {
             preserveScroll: true,
             // onSuccess: () => console.log('Timesheets saved successfully'),
-            onError: () => console.error('Error saving the timesheets'),
+            onError: () => console.error("Error saving the timesheets"),
         });
     };
     // const handleTimeChange = (index, date, value) => {
@@ -262,11 +293,11 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
     //     calculateTotals(newWeekData); // Recalculate totals after updating time
 
     // };
-    const [errorMessage, setErrorMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState("");
     const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
     const [tasksWithTimesheets, setTasksWithTimesheets] = useState([]);
     // const [tasksWithTimesheets, setTasksWithTimesheets] = useState([]);
-    const [successMessage, setSuccessMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState("");
     const handleTimeChange = async (index, date, value) => {
         const newValue = Number(value) || 0;
         const newWeekData = [...weekData];
@@ -277,13 +308,18 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
 
         // Calculate the total hours for the current entry
         const totalHours = Object.values(newWeekData[index])
-            .filter(val => !isNaN(val) && val !== '')
+            .filter((val) => !isNaN(val) && val !== "")
             .reduce((sum, val) => sum + Number(val), 0);
 
         const taskEstimateHours = newWeekData[index].estimateHours || 5;
         const isTaskComplete = totalHours >= taskEstimateHours;
-//  console.log(empl.id)
-        newWeekData[index].disabled = isTaskComplete || status === 1 || isDisabled(date) ||  (isHoliday(date) && !isAssignedToWorkOnHoliday(date, empl.id)) || isWeekend(date);
+        //  console.log(empl.id)
+        newWeekData[index].disabled =
+            isTaskComplete ||
+            status === 1 ||
+            isDisabled(date) ||
+            (isHoliday(date) && !isAssignedToWorkOnHoliday(date, empl.id)) ||
+            isWeekend(date);
 
         setWeekData(newWeekData);
 
@@ -293,9 +329,14 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
         }));
 
         // Update tasksWithTimesheets based on new timesheets data
-        const updatedTasks = tasksWithTimesheets.map(task => {
-            const taskTimesheets = updatedTimesheets.filter(ts => ts.task_id === task.task_id);
-            const totalTimeWorked = taskTimesheets.reduce((sum, ts) => sum + (Number(ts.time_number) || 0), 0);
+        const updatedTasks = tasksWithTimesheets.map((task) => {
+            const taskTimesheets = updatedTimesheets.filter(
+                (ts) => ts.task_id === task.task_id
+            );
+            const totalTimeWorked = taskTimesheets.reduce(
+                (sum, ts) => sum + (Number(ts.time_number) || 0),
+                0
+            );
             return {
                 ...task,
                 total_time_worked: totalTimeWorked,
@@ -308,7 +349,9 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
         const validationErrors = [];
 
         const finalTimesheets = updatedTimesheets.map((entry, idx) => {
-            const task = updatedTasks.find(task => task.task_id === entry.task_id);
+            const task = updatedTasks.find(
+                (task) => task.task_id === entry.task_id
+            );
 
             if (task) {
                 const estimateHours = Number(task.estimate_hours);
@@ -317,7 +360,9 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
                 const newTotalTime = totalTimeWorked + inputTime;
 
                 if (newTotalTime > estimateHours) {
-                    validationErrors.push(`Task ${task.task_name} has exceeded its estimated hours of ${estimateHours}. Please submit your extra task hour in NON-Billable.`);
+                    validationErrors.push(
+                        `Task ${task.task_name} has exceeded its estimated hours of ${estimateHours}. Please submit your extra task hour in NON-Billable.`
+                    );
                     hasValidationErrors = true;
 
                     return {
@@ -334,30 +379,29 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
             };
         });
 
-        setErrorMessage(validationErrors.join('\n'));
+        setErrorMessage(validationErrors.join("\n"));
         setIsSubmitDisabled(hasValidationErrors);
 
         try {
-            await axios.post('/timesheets-store', { timesheets: finalTimesheets });
-            setSuccessMessage('Timesheets updated successfully.');
-            setErrorMessage('');
+            await axios.post("/timesheets-store", {
+                timesheets: finalTimesheets,
+            });
+            setSuccessMessage("Timesheets updated successfully.");
+            setErrorMessage("");
         } catch (error) {
             console.error("Error submitting timesheets:", error);
-            setErrorMessage('There was an error saving the timesheets. Please try again.');
-            setSuccessMessage('');
+            setErrorMessage(
+                "There was an error saving the timesheets. Please try again."
+            );
+            setSuccessMessage("");
         }
 
         calculateTotals(newWeekData); // Recalculate totals after updating time
     };
 
-
-
-
-
-
     useEffect(() => {
         if (errorMessage) {
-            console.log('Error:', errorMessage);
+            console.log("Error:", errorMessage);
             // You can also display the error message in your UI here
             // Example: setErrorDisplayMessage(errorMessage);
         }
@@ -369,11 +413,8 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
             status,
         };
         setWeekData(newWeekData);
-        setData('timesheets', newWeekData);
+        setData("timesheets", newWeekData);
     };
-
-
-
 
     // useEffect(() => {
     //     // Fetch tasks with timesheets from the backend
@@ -389,11 +430,13 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
         // Refresh data when weekData or tasksWithTimesheets changes
         const fetchData = async () => {
             try {
-                const response = await axios.get(`/timesheets-time/${employee.id}`); // Replace with your data fetching endpoint
+                const response = await axios.get(
+                    `/timesheets-time/${employee.id}`
+                ); // Replace with your data fetching endpoint
                 // setWeekData(response.data.weekData);
                 setTasksWithTimesheets(response.data);
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error("Error fetching data:", error);
             }
         };
 
@@ -438,7 +481,9 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
         const validationErrors = {};
 
         const updatedTimesheets = data.timesheets.map((entry, index) => {
-            const task = tasksWithTimesheets.find(task => task.task_id === entry.task_id);
+            const task = tasksWithTimesheets.find(
+                (task) => task.task_id === entry.task_id
+            );
 
             if (task) {
                 const estimateHours = Number(task.estimate_hours);
@@ -451,7 +496,9 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
                 // console.log(`New Total Time: ${newTotalTime}`);
 
                 if (newTotalTime > estimateHours) {
-                    validationErrors[entry.task_id] = `Input time for task "${task.task_name}" exceeds the estimated hours of ${estimateHours}.`;
+                    validationErrors[
+                        entry.task_id
+                    ] = `Input time for task "${task.task_name}" exceeds the estimated hours of ${estimateHours}.`;
                     hasValidationErrors = true;
 
                     // Optionally reset the invalid input
@@ -468,26 +515,23 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
             };
         });
 
-        setData('timesheets', updatedTimesheets);
+        setData("timesheets", updatedTimesheets);
 
         if (hasValidationErrors) {
-            Object.values(validationErrors).forEach(error => alert(error));
+            Object.values(validationErrors).forEach((error) => alert(error));
         } else {
-           post('timesheets-store', {
+            post("timesheets-store", {
                 preserveScroll: true,
-                onSuccess: () => console.log('Timesheets saved successfully'),
-                onError: () => console.error('Error saving the timesheets'),
+                onSuccess: () => console.log("Timesheets saved successfully"),
+                onError: () => console.error("Error saving the timesheets"),
             });
         }
     };
-
-
 
     // useEffect(() => {
     //     tasksWithTimesheets.forEach(task => {
     //         const totalTimeWorked = Number(task.total_time_worked);
     //         const estimateHours = Number(task.estimate_hours);
-
 
     //         if (totalTimeWorked > estimateHours) {
     //             alert(`Task "${task.task_name}" has exceeded its estimated hours of ${estimateHours}.`);
@@ -497,17 +541,15 @@ const isAssignedToWorkOnHoliday = (date, employeeId) => {
 
     const [exceededTasks, setExceededTasks] = useState([]);
 
-useEffect(() => {
-    const exceeded = tasksWithTimesheets.filter(task => {
-        const totalTimeWorked = Number(task.total_time_worked);
-        const estimateHours = Number(task.estimate_hours);
-        return totalTimeWorked > estimateHours;
-    });
+    useEffect(() => {
+        const exceeded = tasksWithTimesheets.filter((task) => {
+            const totalTimeWorked = Number(task.total_time_worked);
+            const estimateHours = Number(task.estimate_hours);
+            return totalTimeWorked > estimateHours;
+        });
 
-    setExceededTasks(exceeded);
-}, [tasksWithTimesheets]);
-
-
+        setExceededTasks(exceeded);
+    }, [tasksWithTimesheets]);
 
     // useEffect(() => {
     //     tasksWithTimesheets.forEach(task => {
@@ -521,22 +563,20 @@ useEffect(() => {
     //     });
     // }, [tasksWithTimesheets]);
 
-
-
-
-
-const handleStatus = (e) => {
+    const handleStatus = (e) => {
         e.preventDefault();
         const updatedTimesheets = weekData.map((entry, index) => ({
             ...entry,
             date: getCurrentDate(index % 7),
         }));
-        setData('timesheets', updatedTimesheets);
-        console.log(employee.user_id)
+        setData("timesheets", updatedTimesheets);
+        console.log(employee.user_id);
         post(`/timesheetemp-employee-status/${employee.id}`, {
             preserveScroll: true,
-            onSuccess: () => console.log('Timesheets status updated successfully'),
-            onError: () => console.error('Error updating the timesheets status'),
+            onSuccess: () =>
+                console.log("Timesheets status updated successfully"),
+            onError: () =>
+                console.error("Error updating the timesheets status"),
         });
     };
 
@@ -546,12 +586,14 @@ const handleStatus = (e) => {
             ...entry,
             date: getCurrentDate(index % 7),
         }));
-        setData('timesheets', updatedTimesheets);
-        console.log(employee.user_id)
+        setData("timesheets", updatedTimesheets);
+        console.log(employee.user_id);
         post(`/approvetime/${employee.id}`, {
             preserveScroll: true,
-            onSuccess: () => console.log('Timesheets status Approved successfully'),
-            onError: () => console.error('Error updating the timesheets status'),
+            onSuccess: () =>
+                console.log("Timesheets status Approved successfully"),
+            onError: () =>
+                console.error("Error updating the timesheets status"),
         });
     };
     const handleStatusReject = (e) => {
@@ -560,17 +602,22 @@ const handleStatus = (e) => {
             ...entry,
             date: getCurrentDate(index % 7),
         }));
-        setData('timesheets', updatedTimesheets);
-        console.log(employee.user_id)
+        setData("timesheets", updatedTimesheets);
+        console.log(employee.user_id);
         post(`/rejectapprovetime/${employee.id}`, {
             preserveScroll: true,
-            onSuccess: () => console.log('Timesheets status Approved successfully'),
-            onError: () => console.error('Error updating the timesheets status'),
+            onSuccess: () =>
+                console.log("Timesheets status Approved successfully"),
+            onError: () =>
+                console.error("Error updating the timesheets status"),
         });
     };
 
     const addRow = () => {
-        setWeekData([...weekData, { project_id: '', task_id: '', time_number: '' }]);
+        setWeekData([
+            ...weekData,
+            { project_id: "", task_id: "", time_number: "" },
+        ]);
         setNoData(false);
     };
     const calculateTotals = (data) => {
@@ -579,7 +626,7 @@ const handleStatus = (e) => {
         for (let i = 0; i < 7; i++) {
             const date = getCurrentDate(i);
             let dailyTotal = 0;
-            data.forEach(row => {
+            data.forEach((row) => {
                 // Only add to dailyTotal if there is a valid time entry
                 const time = row[date] ? parseFloat(row[date]) : 0;
                 dailyTotal += time;
@@ -600,33 +647,32 @@ const handleStatus = (e) => {
         setTotals(totals);
     };
 
-
-
-
-
     const getWeekRange = (selectedDate) => {
-        const startOfWeek = moment(selectedDate).startOf('isoWeek');
-        const endOfWeek = moment(selectedDate).endOf('isoWeek');
+        const startOfWeek = moment(selectedDate).startOf("isoWeek");
+        const endOfWeek = moment(selectedDate).endOf("isoWeek");
         return { start: startOfWeek, end: endOfWeek };
     };
 
     const formatWeekRange = (start, end) => {
-        const formattedStart = start.format('dddd, MMMM DD, YYYY');
-        const formattedEnd = end.format('dddd, MMMM DD, YYYY');
+        const formattedStart = start.format("dddd, MMMM DD, YYYY");
+        const formattedEnd = end.format("dddd, MMMM DD, YYYY");
         return `${formattedStart} - ${formattedEnd}`;
     };
 
     const weekRange = getWeekRange(selectedWeek);
     const formattedWeekRange = formatWeekRange(weekRange.start, weekRange.end);
     const isWeekend = (i) => {
-        const day = moment(selectedWeek).startOf('isoWeek').add(i, 'days').day();
+        const day = moment(selectedWeek)
+            .startOf("isoWeek")
+            .add(i, "days")
+            .day();
         return day === 6 || day === 0; // 6 is Saturday, 0 is Sunday
     };
     const calculateWeeklyTotals = () => {
         let weeklyTotala = 0;
         let weeklyOverUnderTimeCount = 0;
 
-        weekData.forEach(rowData => {
+        weekData.forEach((rowData) => {
             Array.from({ length: 7 }).forEach((_, i) => {
                 const date = getCurrentDate(i);
                 const dailyHours = parseFloat(rowData[date] || 0);
@@ -636,7 +682,7 @@ const handleStatus = (e) => {
                 if (dailyHours > 8) {
                     weeklyOverUnderTimeCount += 1; // Count as 1 for overtime
                 } else if (dailyHours < 8) {
-                    weeklyOverUnderTimeCount += (8 - dailyHours); // Count the difference for undertime
+                    weeklyOverUnderTimeCount += 8 - dailyHours; // Count the difference for undertime
                 }
                 // No need to add anything if dailyHours == 8
             });
@@ -647,7 +693,6 @@ const handleStatus = (e) => {
 
     // Usage
     const { weeklyTotala, weeklyOverUnderTimeCount } = calculateWeeklyTotals();
-
 
     const totalTime = Array.from({ length: 7 }).reduce((acc, _, i) => {
         const date = getCurrentDate(i);
@@ -660,7 +705,6 @@ const handleStatus = (e) => {
         return acc;
     }, 0);
 
-
     const totalOvertime = Array.from({ length: 7 }).reduce((acc, _, i) => {
         const date = getCurrentDate(i);
         const overtime = totals.overtime[date] || 0;
@@ -672,10 +716,8 @@ const handleStatus = (e) => {
         return acc;
     }, 0);
 
-    const [Timesheets, setTimesheets] = useState()
+    const [Timesheets, setTimesheets] = useState();
     const overltime = totalOvertime + totalTime;
-
-
 
     // const getCurrentDate = (i) => {
     //     const date = new Date();
@@ -683,124 +725,216 @@ const handleStatus = (e) => {
     //     return date.toISOString().split('T')[0];
     // };
     return (
-
-        <div className='w-[83%]  absolute right-0 overflow-hidden'>
-            <Header user={user} notif={notif}/>
+        <div className="w-[83%]  absolute right-0 overflow-hidden">
+            <Header user={user} notif={notif} />
             <Nav user_type={user_type} />
-            <div> {loading ? <span className='grid place-items-center h-[20rem]'><l-waveform
-  size="35"
-  stroke="3.5"
-  speed="1"
-  color="black"
-></l-waveform></span>:<>  <div className={`modal absolute top-0 left-0 w-full h-full transition-all duration-500 bg-black/50 flex justify-center items-center ${modal ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'}`}>
-
-
-    <div className='w-2/5 p-4 px-6 bg-white rounded-md'>
-        <div className='flex justify-between'>
-            <h1 className='text-xl font-semibold'>Add Description</h1>
-            <button onClick={() => setModal(false)}><FaXmark /></button>
-        </div>
-        <hr className='my-2' />
-        <form className='py-3 space-y-5'>
-            <textarea
-                type="text"
-                className='w-full p-2 border rounded-md'
-                placeholder="Description"
-                value={modalData.index !== null && modalData.date !== null ? (weekData[modalData.index][`description_${modalData.date}`] || '') : ''}
-            onChange={(e) => handleDescriptionChange(modalData.index, modalData.date, e.target.value)}
-            ></textarea>
             <div>
-                {/* <button
+                {" "}
+                {loading ? (
+                    <span className="grid place-items-center h-[20rem]">
+                        <l-waveform
+                            size="35"
+                            stroke="3.5"
+                            speed="1"
+                            color="black"
+                        ></l-waveform>
+                    </span>
+                ) : (
+                    <>
+                        {" "}
+                        <div
+                            className={`modal absolute top-0 left-0 w-full h-full transition-all duration-500 bg-black/50 flex justify-center items-center ${
+                                modal
+                                    ? "opacity-100 visible pointer-events-auto"
+                                    : "opacity-0 invisible pointer-events-none"
+                            }`}
+                        >
+                            <div className="w-2/5 p-4 px-6 bg-white rounded-md">
+                                <div className="flex justify-between">
+                                    <h1 className="text-xl font-semibold">
+                                        Add Description
+                                    </h1>
+                                    <button onClick={() => setModal(false)}>
+                                        <FaXmark />
+                                    </button>
+                                </div>
+                                <hr className="my-2" />
+                                <form className="py-3 space-y-5">
+                                    <textarea
+                                        type="text"
+                                        className="w-full p-2 border rounded-md"
+                                        placeholder="Description"
+                                        value={
+                                            modalData.index !== null &&
+                                            modalData.date !== null
+                                                ? weekData[modalData.index][
+                                                      `description_${modalData.date}`
+                                                  ] || ""
+                                                : ""
+                                        }
+                                        onChange={(e) =>
+                                            handleDescriptionChange(
+                                                modalData.index,
+                                                modalData.date,
+                                                e.target.value
+                                            )
+                                        }
+                                    ></textarea>
+                                    <div>
+                                        {/* <button
                     onClick={handleSubmits}
                     className='px-8 py-2 text-sm font-semibold text-white bg-blue-500 rounded-md'
                 >
                     Submit
                 </button> */}
-            </div>
-        </form>
-    </div>
-</div>
-<p className='ml-5'>UnLock Timesheet for the Employee <span class="font-bold">{employee.name}</span></p>
-<div className="space-x-2" style={{ display: 'flex', justifyContent: 'space-between', margin: '1rem' }}>
-    <p>
-        <span className='font-bold '>Week</span>: <span className='text-red-500 underline'> {formattedWeekRange}</span>
-    </p>
-    <div>
-
-        <button onClick={handlePreviousWeek} className='underline'>
-            <BiSkipPreviousCircle className='text-[2rem] text-blue-500' />
-        </button>
-        <button onClick={handleNextWeek} className='underline'>
-            <CgPlayTrackNextO className='text-[2rem] text-blue-500' />
-        </button>
-    </div>
-</div>
-
-<div className='px-4'>
-    {/* <div className='flex justify-end border  bg-[#356A6A] rounded-t-md p-3' >
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <p className="ml-5">
+                            UnLock Timesheet for the Employee{" "}
+                            <span class="font-bold">{employee.name}</span>
+                        </p>
+                        <div
+                            className="space-x-2"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                margin: "1rem",
+                            }}
+                        >
+                            <p>
+                                <span className="font-bold ">Week</span>:{" "}
+                                <span className="text-red-500 underline">
+                                    {" "}
+                                    {formattedWeekRange}
+                                </span>
+                            </p>
+                            <div>
+                                <button
+                                    onClick={handlePreviousWeek}
+                                    className="underline"
+                                >
+                                    <BiSkipPreviousCircle className="text-[2rem] text-blue-500" />
+                                </button>
+                                <button
+                                    onClick={handleNextWeek}
+                                    className="underline"
+                                >
+                                    <CgPlayTrackNextO className="text-[2rem] text-blue-500" />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="px-4">
+                            {/* <div className='flex justify-end border  bg-[#356A6A] rounded-t-md p-3' >
         <button onClick={addRow} className='p-2 text-white bg-blue-800 rounded-md '>
             <FaPlus />
         </button>
     </div> */}
-    {errorMessage && <div className="error-message">{errorMessage}</div>}
+                            {errorMessage && (
+                                <div className="error-message">
+                                    {errorMessage}
+                                </div>
+                            )}
 
-    {exceededTasks.length > 0 && (
-                <div className="text-red-500">
-                    {exceededTasks.map((task, index) => (
-                        <p key={index}>
-                            Task {task.task_name} has exceeded its estimated hours of {task.estimate_hours}.please Submit your extra task hour in NON-Billable
-                        </p>
-                    ))}
-                </div>
-            )}
-    <form onSubmit={(e) => e.preventDefault()} >
+                            {exceededTasks.length > 0 && (
+                                <div className="text-red-500">
+                                    {exceededTasks.map((task, index) => (
+                                        <p key={index}>
+                                            Task {task.task_name} has exceeded
+                                            its estimated hours of{" "}
+                                            {task.estimate_hours}.please Submit
+                                            your extra task hour in NON-Billable
+                                        </p>
+                                    ))}
+                                </div>
+                            )}
+                            <form onSubmit={(e) => e.preventDefault()}>
+                                <table className="w-full  border-[3px]">
+                                    <thead className="bg-[#465584] text-white">
+                                        <tr>
+                                            {/* <th className='p-1 border'>Project</th> */}
+                                            <th className="p-1 border">Task</th>
+                                            {Array.from({ length: 7 }).map(
+                                                (_, i) => {
+                                                    const { dayName, dayDate } =
+                                                        CurrentDate(i);
+                                                    return (
+                                                        <th
+                                                            className="p-1 text-center border"
+                                                            key={i}
+                                                        >
+                                                            <div>{dayDate}</div>
+                                                            <div>{dayName}</div>
+                                                        </th>
+                                                    );
+                                                }
+                                            )}
+                                            <td className="w-[88px]">
+                                                Total Time
+                                            </td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {noData ? (
+                                            <tr>
+                                                <td colSpan="8">
+                                                    {" "}
+                                                    <p className="grid place-items-center">
+                                                        {" "}
+                                                        <h1 className="font-bold text-[1.5rem]">
+                                                            We couldn't find any
+                                                            data
+                                                        </h1>
+                                                        Sorry we can't find any
+                                                        timesheet records on
+                                                        this week. Please add
+                                                        timesheet record .
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            <>
+                                                {weekData.map(
+                                                    (rowData, index) => {
+                                                        console.log(rowData);
+                                                        const weeklyTotal =
+                                                            Array.from({
+                                                                length: 7,
+                                                            }).reduce(
+                                                                (
+                                                                    total,
+                                                                    _,
+                                                                    i
+                                                                ) => {
+                                                                    const date =
+                                                                        getCurrentDate(
+                                                                            i
+                                                                        );
+                                                                    return (
+                                                                        total +
+                                                                        parseFloat(
+                                                                            rowData[
+                                                                                date
+                                                                            ] ||
+                                                                                0
+                                                                        )
+                                                                    );
+                                                                },
+                                                                0
+                                                            );
 
-        <table className='w-full  border-[3px]'>
-            <thead className='bg-[#465584] text-white'>
-                <tr >
-                    <th className='p-1 border'>Project</th>
-                    <th className='p-1 border'>Task</th>
-                    {Array.from({ length: 7 }).map((_, i) => {
-                        const { dayName, dayDate } = CurrentDate(i);
-                        return (
-                            <th className='p-1 text-center border' key={i}>
-                                <div>{dayDate}</div>
-                                <div>{dayName}</div>
-
-                            </th>
-                        );
-                    })}
-                    <td className='w-[88px]'>Total Time</td>
-                </tr>
-            </thead>
-            <tbody>
-                {
-                    noData ? (
-                        <tr>
-                            <td colSpan="8">   <p className='grid place-items-center'> <h1 className='font-bold text-[1.5rem]'>We couldn't find any data</h1>
-                                Sorry we can't find any timesheet records on this week.
-
-                                Please add timesheet record .</p></td>
-                        </tr>
-                    ) : (
-                        <>
-                            {weekData.map((rowData, index) => {
-
- console.log(rowData)
-                                const weeklyTotal = Array.from({ length: 7 }).reduce((total, _, i) => {
-                                    const date = getCurrentDate(i);
-                                    return total + parseFloat(rowData[date] || 0);
-                                }, 0);
-
-                                return (
-                                    <tr key={index}>
-                                        <td className='bg-[#6699CC] text-white w-[97px] border text-[0.9rem]'>
-                                          <div>
-   {rowData.project_name}
-    </div>
-                                        </td>
-                                        <td className='bg-[#6699CC] text-white w-[97px] border'>
-                                            {/* <select
+                                                        return (
+                                                            <tr key={index}>
+                                                                <td className="bg-[#6699CC] text-white w-[97px] border text-[0.9rem]">
+                                                                    <div>
+                                                                        {
+                                                                            rowData.project_name
+                                                                        }
+                                                                    </div>
+                                                                </td>
+                                                                <td className="bg-[#6699CC] text-white w-[97px] border">
+                                                                    {/* <select
                                                 className='bg-[#6699CC] text-white border-white border text-[1rem] w-[147px]'
                                                 name={`timesheets[${index}].task_id`}
                                                 value={rowData.task_id}
@@ -813,148 +947,246 @@ const handleStatus = (e) => {
                                                     </option>
                                                 ))}
                                             </select> */}
-                                            {rowData.task_name}
-                                        </td>
-                                        {Array.from({ length: 7 }).map((_, i) => {
+                                                                    {
+                                                                        rowData.task_name
+                                                                    }
+                                                                </td>
+                                                                {Array.from({
+                                                                    length: 7,
+                                                                }).map(
+                                                                    (_, i) => {
+                                                                        const date =
+                                                                            getCurrentDate(
+                                                                                i
+                                                                            );
 
-
-                                            const date = getCurrentDate(i);
-
-                                            const disabled = status === 1 || isDisabled(date) || (isHoliday(date) && !isAssignedToWorkOnHoliday(date, empl.id)) || isWeekend(date);
-                                            return (
-                                                <td key={i} className='w-[97px] bg-white border-2 '>
-                                                    <div className='flex'>
-                                                        <input
-                                                            className={`form-control ${disabled ? 'bg-[#f7e0e0] text-white w-[97px] border-[#594684]' : 'w-[60px] border-[#465584]'}`}
-                                                            type="number"
-                                                            name={`timesheets[${index}][${date}]`}
-                                                            value={rowData[date] || ''}
-                                                            onChange={(e) => handleTimeChange(index, date, e.target.value)}
-                                                            disabled={disabled}
-                                                        />
-                                                        {/* <button
+                                                                        const disabled =
+                                                                            status ===
+                                                                                1 ||
+                                                                            isDisabled(
+                                                                                date
+                                                                            ) ||
+                                                                            (isHoliday(
+                                                                                date
+                                                                            ) &&
+                                                                                !isAssignedToWorkOnHoliday(
+                                                                                    date,
+                                                                                    empl.id
+                                                                                )) ||
+                                                                            isWeekend(
+                                                                                date
+                                                                            );
+                                                                        return (
+                                                                            <td
+                                                                                key={
+                                                                                    i
+                                                                                }
+                                                                                className="w-[97px] bg-white border-2 "
+                                                                            >
+                                                                                <div className="flex">
+                                                                                    <input
+                                                                                        className={`form-control ${
+                                                                                            disabled
+                                                                                                ? "bg-[#f7e0e0] text-white w-[97px] border-[#594684]"
+                                                                                                : "w-[60px] border-[#465584]"
+                                                                                        }`}
+                                                                                        type="number"
+                                                                                        name={`timesheets[${index}][${date}]`}
+                                                                                        value={
+                                                                                            rowData[
+                                                                                                date
+                                                                                            ] ||
+                                                                                            ""
+                                                                                        }
+                                                                                        onChange={(
+                                                                                            e
+                                                                                        ) =>
+                                                                                            handleTimeChange(
+                                                                                                index,
+                                                                                                date,
+                                                                                                e
+                                                                                                    .target
+                                                                                                    .value
+                                                                                            )
+                                                                                        }
+                                                                                        disabled={
+                                                                                            disabled
+                                                                                        }
+                                                                                    />
+                                                                                    {/* <button
                                                             onClick={() => handleOpenModal(index, date)}
                                                             className='text-[#F6A12E] px-2 py-2 text-sm rounded-md font-medium '
                                                         >
                                                             <FaMessage />
                                                         </button> */}
+                                                                                </div>
+                                                                            </td>
+                                                                        );
+                                                                    }
+                                                                )}
+                                                                {/* Add a new <td> to display the weekly total */}
+                                                                <td className="bg-white">
+                                                                    <input
+                                                                        className=" text-center form-control w-[88px] bg-[#d3e0ea] text-black"
+                                                                        type="number"
+                                                                        value={
+                                                                            weeklyTotal
+                                                                        }
+                                                                        disabled
+                                                                    />
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    }
+                                                )}
 
-                                                    </div>
-                                                </td>
-                                            );
-                                        })}
-                                        {/* Add a new <td> to display the weekly total */}
-                                        <td className='bg-white'>
-                                            <input
-                                                className=" text-center form-control w-[88px] bg-[#d3e0ea] text-black"
-                                                type="number"
-                                                value={weeklyTotal}
-                                                disabled
-                                            />
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                                <tr className="bg-[#e0f7e0] ">
+                                                    <td className="border "></td>
+                                                    <td className="border ">
+                                                        Total
+                                                    </td>
+                                                    {Array.from({
+                                                        length: 7,
+                                                    }).map((_, i) => {
+                                                        const date =
+                                                            getCurrentDate(i);
+                                                        return (
+                                                            <td
+                                                                key={i}
+                                                                className="p-2 border"
+                                                            >
+                                                                {totals.total[
+                                                                    date
+                                                                ] || 0}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    <td className="text-center">
+                                                        {weeklyTotala}
+                                                    </td>
+                                                </tr>
+                                                <tr className="bg-[#fff] ">
+                                                    <td className="border "></td>
+                                                    <td className="border ">
+                                                        {" "}
+                                                        Extra Work hours{" "}
+                                                    </td>
+                                                    {Array.from({
+                                                        length: 7,
+                                                    }).map((_, i) => {
+                                                        const date =
+                                                            getCurrentDate(i);
+                                                        const over =
+                                                            totals.overtime[
+                                                                date
+                                                            ] || 0;
+                                                        const displayOvertime =
+                                                            over > 0
+                                                                ? `+${over}`
+                                                                : over;
+                                                        return (
+                                                            <td
+                                                                style={{
+                                                                    color:
+                                                                        displayOvertime >
+                                                                        0
+                                                                            ? "green"
+                                                                            : "red",
+                                                                }}
+                                                                key={i}
+                                                                className="p-2 text-center border"
+                                                            >
+                                                                {over === 0
+                                                                    ? 0
+                                                                    : displayOvertime}
+                                                            </td>
+                                                        );
+                                                    })}
 
-                            <tr className='bg-[#e0f7e0] '>
-                                <td className='border '></td>
-                                <td className='border '>Total</td>
-                                {Array.from({ length: 7 }).map((_, i) => {
-                                    const date = getCurrentDate(i);
-                                    return (
-                                        <td key={i} className='p-2 border'>{totals.total[date] || 0}</td>
-                                    );
-                                })}
-                                <td className='text-center'>{weeklyTotala}</td>
-                            </tr>
-                            <tr className='bg-[#fff] '>
-                                <td className='border '></td>
-                                <td className='border '> Extra Work hours </td>
-                                {Array.from({ length: 7 }).map((_, i) => {
-                                    const date = getCurrentDate(i);
-                                    const over = totals.overtime[date] || 0
-                                    const displayOvertime = over > 0 ? `+${over}` : over;
-                                    return (
-                                        <td style={{ color: displayOvertime > 0 ? 'green' : 'red' }} key={i} className='p-2 text-center border'>{over === 0 ? 0 : displayOvertime}</td>
-                                    );
-                                })}
+                                                    <td className="text-center">
+                                                        -{overltime}
+                                                    </td>
+                                                </tr>
+                                            </>
+                                        )}
+                                    </tbody>
+                                </table>
 
-                                <td className='text-center'>
-
-
-                                    -{overltime}
-
-                                </td>
-
-                            </tr>
-                        </>)}
-            </tbody>
-        </table>
-
-        {/* {Object.keys(totals.projectWise).map(projectId => (
+                                {/* {Object.keys(totals.projectWise).map(projectId => (
 <div key={projectId}>
 <h3>Project ID: {projectId}</h3>
 <p>Weekly Total: {totals.projectWise[projectId].weeklyTotal}</p>
 <p>Weekly Overtime: {totals.projectWise[projectId].weeklyOvertime}</p>
 </div>
 ))} */}
-        {/* <div>
+                                {/* <div>
 
     <button type="submit">Submit</button>
     <button type="button" onClick={handleStatus}>Update Status</button>
 </div> */}
-        <div className='flex justify-end   bg-[#356A6A]'>
-            <div className='w-[50%] grid place-items-center border-2 p-3'>
-                {/* <button onClick={handleSubmit} disabled={isSubmitDisabled} className='border-2 p-2 bg-[#465584] text-white rounded-md' disabled={status === 1}>Save time Status</button> */}
-              {
-                is_approved === 3 ? (
-                    // Display Approve and Reject buttons if not yet approved or rejected
-                    <div className='flex space-x-1'>
-                        <button
-                            onClick={handleStatusApprove}
-                            className='p-2 text-white bg-green-800 border-2 rounded-md'
-                        >
-                            Approve timesheet
-                        </button>
-                        <button
-                            onClick={handleStatusReject}
-                            className='p-2 text-white bg-red-500 border-2 rounded-md'
-                        >
-                            Reject timesheet
-                        </button>
-                    </div>
-                ) : (
-                    // Conditionally render the "Approved" or "Rejected" message based on isApproved
-                    <div className="mt-3">
-                        {is_approved === 1 ? (
-                            <span className="font-bold text-green-600">Timesheet Approved</span>
-                        ) : (
-                            <span className="font-bold text-red-600">Timesheet Rejected</span>
-                        )}
-                    </div>
-                )
-            }
+                                <div className="flex justify-end   bg-[#356A6A]">
+                                    <div className="w-[50%] grid place-items-center border-2 p-3">
+                                        {/* <button onClick={handleSubmit} disabled={isSubmitDisabled} className='border-2 p-2 bg-[#465584] text-white rounded-md' disabled={status === 1}>Save time Status</button> */}
+                                        {is_approved === 3 ? (
+                                            // Display Approve and Reject buttons if not yet approved or rejected
+                                            <div className="flex space-x-1">
+                                                <button
+                                                    onClick={
+                                                        handleStatusApprove
+                                                    }
+                                                    className="p-2 text-white bg-green-800 border-2 rounded-md"
+                                                >
+                                                    Approve timesheet
+                                                </button>
+                                                <button
+                                                    onClick={handleStatusReject}
+                                                    className="p-2 text-white bg-red-500 border-2 rounded-md"
+                                                >
+                                                    Reject timesheet
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            // Conditionally render the "Approved" or "Rejected" message based on isApproved
+                                            <div className="mt-3">
+                                                {is_approved === 1 ? (
+                                                    <span className="font-bold text-green-600">
+                                                        Timesheet Approved
+                                                    </span>
+                                                ) : (
+                                                    <span className="font-bold text-red-600">
+                                                        Timesheet Rejected
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="w-[50%] grid place-items-center border-2 p-3">
+                                        {status === 1 ? (
+                                            <>
+                                                {" "}
+                                                <button
+                                                    onClick={handleStatus}
+                                                    className="border-2 p-2 bg-[#F06495] text-white rounded-md"
+                                                >
+                                                    Unlock timesheet
+                                                </button>{" "}
+                                                <br />
+                                            </>
+                                        ) : (
+                                            <p className="mt-3 text-white">
+                                                Unlocking of the timesheet has
+                                                been done.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </>
+                )}
             </div>
-
-
-            <div className='w-[50%] grid place-items-center border-2 p-3'>
-
-
-
-                {
-                    status === 1 ? <>   <button onClick={handleStatus} className='border-2 p-2 bg-[#F06495] text-white rounded-md' >Unlock timesheet</button> <br/>
-                    </> :  <p className='mt-3 text-white'>
-Unlocking of the timesheet has been done.</p>
-                }</div>
         </div>
-    </form>
-</div></>}
-
-
-
-            </div>
-        </div>
-
     );
 };
 

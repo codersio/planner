@@ -82,11 +82,11 @@ Route::middleware(['auth'])->group(function () {
 
 
         Route::get('/projects-task', [ProjectController::class, 'Task']);
-        Route::get('/task-create/', [ProjectController::class, 'taskCreate']);
+        Route::get('/task-create', [ProjectController::class, 'taskCreate']);
 
 
 
-        Route::get('/task-category/', [ProjectController::class, 'Tskcategory']);
+        Route::get('/task-category', [ProjectController::class, 'Tskcategory']);
 
 
 

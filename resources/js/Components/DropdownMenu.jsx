@@ -18,7 +18,6 @@ export default function DropdownMenu({ icon, name, items, user }) {
       setHeight(0);
     }
   }, [dropdown]);
-  console.log(props)
   const renderItems = (items) => {
     return (props.auth.user.type === 1 ? items : items.filter(item => props.permission.includes(item.perm))).map((item, index) => (      
       <li key={index}>

@@ -16,6 +16,6 @@ class TestController extends Controller
         
         // dd($holiday);
         // dd($leave);
-        // return Inertia::render('print/invoice' );
+        return Inertia::render('print/invoice' );
     }
 }

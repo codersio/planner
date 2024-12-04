@@ -166,18 +166,18 @@ const Nav = ({ user_type, usrrr }) => {
                         icon={<FaFolderClosed />}
                         name={"Project Management"}
                         items={[
-                            {
-                                name: "Projects",
-                                link: "/projects",
-                                perm: "view_project",
-                            },
+                            // {
+                            //     name: "Projects",
+                            //     link: "/projects",
+                            //     perm: "view_project",
+                            // },
                             {
                                 name: "Timesheet",
                                 link: "/daily-status",
                                 perm: "view_timsheet",
                             },
                             {
-                                name: "Tasks",
+                                name: "Projects",
                                 link: "/projects-task",
                                 perm: "view_task",
                             },

@@ -223,8 +223,7 @@ class ProjectController extends Controller
         $projects = Project::all();
         // dd($projects);
         $taskcategory = TaskCategory::all();
-        $employees = $employee = User::join('employees', 'employees.user_id', '=', 'users.id')
-            ->select('employees.phone', 'employees.address', 'employees.joinning_date', 'users.name', 'users.email', 'users.id')->get();
+        $employees = User::all();
         $userss = Auth::user();
         $user = Auth::user()->name;
         if ($userss) {
@@ -238,7 +237,7 @@ class ProjectController extends Controller
 
     public function taskStore(Request $request)
     {
-        //         dd($request->all());
+                // dd($request->all());
         $project = new Task();
         $project->task_name = $request->task_name;
         $project->estimate_hours = $request->estimate_hours;
@@ -249,13 +248,14 @@ class ProjectController extends Controller
         $project->status = 0;
         // $project->employee_id = $request->employee_id;
         $project->save();
+        
         Notification::send(User::whereIn('id', $request->employee_id)->get(), new NotificationsTaskAssign($project->task_name, 'New Task Assigned'));
         foreach ($request->employee_id as $employee_id) {
             $assign = new TaskAssign();
             $assign->task_id = $project->id;
             $assign->employee_id = $employee_id;
             $assign->project_id = $project->project_id;
-            $assign->employee_hours = $employee_id;
+            $assign->employee_hours = $request->employee_hours[$employee_id];
             $assign->save();
         }
 
@@ -329,7 +329,7 @@ class ProjectController extends Controller
             // dd($permissions);
         }
         $projects = Project::all();
-        $employees = User::all(); // Assuming employees are users
+        $employees = User::all();
         $notif = Auth::user()->notifications;
         return Inertia::render('projects/task-edit', [
             'project' => $project,

@@ -11,6 +11,7 @@ use App\Models\Timesheet;
 use App\Models\DailyStatus;
 use Illuminate\Http\Request;
 use App\Models\LeaveManagement;
+use App\Models\TaskCategory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -44,7 +45,10 @@ class DailyStatusController extends Controller
                 'leave_management.id'
             )->where('leave_management.employee_id', Auth::user()->id)->first();
         // dd($leave);
-        $taskMapping = Project::with('tasks')->get();
+        $taskMappings = Task::join('task_assigns','task_assigns.task_id','=','tasks.id')
+                            ->where('task_assigns.employee_id',Auth::user()->id)
+                            ->select('tasks.id','tasks.task_name as tname')
+                            ->get();
         $holidays = Holiday::all(['start_date', 'end_date']);
         $user = Auth::user()->name;
         $userid = Auth::user()->id;
@@ -61,41 +65,66 @@ class DailyStatusController extends Controller
             ->select('tasks.estimate_hours', 'tasks.task_name')->where('task_assigns.employee_id', Auth::user()->id)->get();
         // dd($taskwithdisabled);
         $notif = Auth::user()->notifications;
-        return Inertia::render('dailystatus/index', compact('initialProjects', 'taskMapping', 'leave', 'taskwithdisabled', 'permissions', 'user', 'notif', 'userid'));
+        return Inertia::render('dailystatus/index', compact('initialProjects', 'taskMappings', 'leave', 'taskwithdisabled', 'permissions', 'user', 'notif', 'userid'));
     }
 
     public function getProjectTasks()
     {
 
 
+        // $tasks = User::join('task_assigns', 'task_assigns.employee_id', '=', 'users.id')
+        //     ->join('tasks', 'tasks.id', '=', 'task_assigns.task_id')
+        //     ->join('projects', 'projects.id', '=', 'tasks.project_id')
+        //     ->select(
+        //         'projects.id as project_id',
+        //         'projects.title as project_name',
+        //         'tasks.id as task_id',
+        //         'tasks.task_name as task_name'
+        //     )
+        //     ->where('task_assigns.employee_id', Auth::user()->id)
+        //     ->get();
+
+        // // Grouping tasks by project
+        // $taskMapping = [];
+        // foreach ($tasks as $task) {
+        //     if (!isset($taskMapping[$task->project_id])) {
+        //         $taskMapping[$task->project_id] = [
+        //             'project_name' => $task->project_name,
+        //             'tasks' => []
+        //         ];
+        //     }
+        //     $taskMapping[$task->project_id]['tasks'][] = [
+        //         'task_id' => $task->task_id,
+        //         'task_name' => $task->task_name
+        //     ];
+        // }
+
         $tasks = User::join('task_assigns', 'task_assigns.employee_id', '=', 'users.id')
             ->join('tasks', 'tasks.id', '=', 'task_assigns.task_id')
-            ->join('projects', 'projects.id', '=', 'tasks.project_id')
             ->select(
-                'projects.id as project_id',
-                'projects.title as project_name',
                 'tasks.id as task_id',
                 'tasks.task_name as task_name'
             )
             ->where('task_assigns.employee_id', Auth::user()->id)
             ->get();
 
+
         // Grouping tasks by project
         $taskMapping = [];
         foreach ($tasks as $task) {
-            if (!isset($taskMapping[$task->project_id])) {
-                $taskMapping[$task->project_id] = [
-                    'project_name' => $task->project_name,
-                    'tasks' => []
-                ];
-            }
-            $taskMapping[$task->project_id]['tasks'][] = [
+            // if (!isset($taskMapping[$task->project_id])) {
+            //     $taskMapping[$task->project_id] = [
+            //         'project_name' => $task->project_name,
+            //         'tasks' => []
+            //     ];
+            // }
+            $taskMapping['tasks'][] = [
                 'task_id' => $task->task_id,
                 'task_name' => $task->task_name
             ];
         }
 
-        return response()->json($taskMapping);
+        return response()->json($tasks);
     }
 
 
