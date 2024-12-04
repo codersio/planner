@@ -179,12 +179,12 @@ const Nav = ({ user_type, usrrr }) => {
                             {
                                 name: "Projects",
                                 link: "/projects-task",
-                                perm: "view_task",
+                                perm: "view_project",
                             },
                             {
                                 name: "Task Calendar",
                                 link: "/taskcalendar",
-                                perm: "view_task",
+                                // perm: "view_task",
                             },
                             { name: "Reports", link: "/reports-get" },
                         ]}

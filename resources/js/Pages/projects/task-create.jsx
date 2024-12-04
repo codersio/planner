@@ -25,6 +25,7 @@ const TaskCreate = ({
         employee_id: [], // Initialize as an array
         employee_hours: {}, // New object to store hours for each employee
         status: "",
+        priority:0,
         project_id: projects.length > 0 ? projects[0].id : "",
     });
 
@@ -87,6 +88,7 @@ const TaskCreate = ({
     };
 
     const handleSubmit = async (e) => {
+
         e.preventDefault(); // Prevent default form submission behavior
 
         const selectedProjectId = parseInt(data.project_id);
@@ -101,23 +103,23 @@ const TaskCreate = ({
 
         const estimateHours = parseFloat(data.estimate_hours);
 
-        try {
-            const response = await axios.get(
-                `/project-tasks/${selectedProjectId}/total-hours`
-            );
-            const totalExistingHours = parseFloat(response.data.total_hours);
+        // try {
+        //     const response = await axios.get(
+        //         `/project-tasks/${selectedProjectId}/total-hours`
+        //     );
+        //     const totalExistingHours = parseFloat(response.data.total_hours);
 
-            const totalHours = totalExistingHours + estimateHours;
-            const projectEstimateTime = parseFloat(
-                selectedProject.estimate_time
-            );
+        //     const totalHours = totalExistingHours + estimateHours;
+        //     const projectEstimateTime = parseFloat(
+        //         selectedProject.estimate_time
+        //     );
 
-            if (totalHours > projectEstimateTime) {
-                notyf.error(
-                    `Total hours exceed the allowed limit for the project. Maximum allowed: ${projectEstimateTime} hours.`
-                );
-                return;
-            }
+        //     if (totalHours > projectEstimateTime) {
+        //         notyf.error(
+        //             `Total hours exceed the allowed limit for the project. Maximum allowed: ${projectEstimateTime} hours.`
+        //         );
+        //         return;
+        //     }
 
             post("/task-store", {
                 data,
@@ -142,11 +144,11 @@ const TaskCreate = ({
                     }
                 },
             });
-        } catch (error) {
-            notyf.error(
-                "Failed to validate project hours. Please try again later."
-            );
-        }
+        // } catch (error) {
+        //     notyf.error(
+        //         "Failed to validate project hours. Please try again later."
+        //     );
+        // }
     };
 
     const normalizedTaskName = data.task_name
@@ -181,8 +183,8 @@ const TaskCreate = ({
                         </select>
                     </div> */}
                     <div>
-                        <label htmlFor="task_name">Task Name</label>
-                        <select
+                        <label htmlFor="task_name">Project Name</label>
+                        {/* <select
                             className="w-full rounded-lg"
                             name="task_name"
                             value={data.task_name}
@@ -194,7 +196,8 @@ const TaskCreate = ({
                                     {tasks.tname}
                                 </option>
                             ))}
-                        </select>
+                        </select> */}
+                        <input type="text" name="task_name" className="w-full rounded-lg" value={data.task_name} onChange={handleChange}/>
                         {errors.name && <div>{errors.name}</div>}
                     </div>
                     <div>
@@ -300,14 +303,13 @@ const TaskCreate = ({
                     </div>
                     <div>
                         <label htmlFor="">Priority</label>
-                        <select id="" className="w-full rounded-lg" name="priority" value={data.prio} onChange={handleChange}>
+                        <select id="" className="w-full rounded-lg" name="priority" value={data.priority} onChange={handleChange}>
                             <option value="">-- Select Priority --</option>
                             <option value="0">Low</option>
                             <option value="1">Medium</option>
                             <option value="2">High</option>
                         </select>
                     </div>
-                    <br/>
                     <div className="w-full">
                         <button
                             type="submit"

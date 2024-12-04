@@ -21,6 +21,7 @@ const Employee = ({ user, employee, user_type, projs, projects, query, usrrr, pr
         }
     }, [user_type]);
     console.log(user)
+    console.log(query)
     return (
 
         <div className={`${user && user !== 'customer' ? 'w-[85.2%]':'w-full'} h-full absolute right-0 overflow-hidden`} onClick={(e) => setNotifyModal(!notifyModal)}>
@@ -135,8 +136,9 @@ const Employee = ({ user, employee, user_type, projs, projects, query, usrrr, pr
                                                 usrrr === 1 ? <th className='p-2 text-left border'>Employee Name</th> : ''
                                             }
 
-                                            <th className='p-2 text-left border'>Project Title</th>
-                                            <th className='p-2 text-left border'>Task Name</th>
+                                            <th className='p-2 text-left border'>Project Name</th>
+                                            <th className='p-2 text-left border'>Start Date</th>
+                                            <th className='p-2 text-left border'>End Date</th>
 
                                             <th className='p-2 text-left border'>Assign hours</th>
                                             <th className='p-2 text-left border'>Time Spent(hours)</th>

@@ -66,21 +66,21 @@ class AdminController extends Controller
                 ->get();
         } else {
             $query = Timesheet::join('users', 'users.id', '=', 'timesheets.user_id')
-                ->join('projects', 'projects.id', '=', 'timesheets.project_id')
+                // ->join('projects', 'projects.id', '=', 'timesheets.project_id')
                 ->join('tasks', 'tasks.id', '=', 'timesheets.task_id')
                 ->join('task_assigns', function ($join) {
                     $join->on('task_assigns.employee_id', '=', 'users.id')
                         ->on('task_assigns.task_id', '=', 'tasks.id');
                 })
                 ->select(
-                    'projects.title',
+                    
                     'tasks.task_name',
                     'users.name',
                     DB::raw('SUM(timesheets.time_number) as total_time_number'), // Sum of time_number
                     'task_assigns.employee_hours'
                 )
                 ->where('users.id', Auth::user()->id)
-                ->groupBy('projects.title', 'tasks.task_name', 'users.name', 'task_assigns.employee_hours') // Group by project, task, and user
+                ->groupBy( 'tasks.task_name', 'users.name', 'task_assigns.employee_hours') // Group by project, task, and user
                 ->get();
         }
 

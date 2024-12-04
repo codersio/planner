@@ -245,6 +245,7 @@ class ProjectController extends Controller
         $project->project_id = $request->project_id;
         $project->sdate = $request->sdate;
         $project->edate = $request->edate;
+        $project->priority = $request->priority;
         $project->status = 0;
         // $project->employee_id = $request->employee_id;
         $project->save();
@@ -353,6 +354,7 @@ class ProjectController extends Controller
         // $task->project_id = $request->project_id;
         $task->sdate = $request->sdate;
         $task->edate = $request->edate;
+        $task->priority = $request->priority;
         $task->save();
         Notification::send(User::whereIn('id', $request->employee_id)->get(), new NotificationsTaskAssign($task->task_name, 'New Task Assigned'));
         // Update task assignments
@@ -440,8 +442,7 @@ class ProjectController extends Controller
             $projects = Task::join('projects', 'projects.id', '=', 'tasks.project_id')
                 ->join('task_assigns', 'task_assigns.task_id', '=', 'tasks.id')
                 ->join('users', 'users.id', '=', 'task_assigns.employee_id')
-                ->select('tasks.task_name', 'projects.title', 'tasks.status', 'tasks.id', 'task_assigns.employee_hours')
-                ->where('task_assigns.employee_id', Auth::user()->id)
+                ->select('tasks.task_name', 'projects.title', 'tasks.status', 'tasks.id', 'users.name', 'task_assigns.employee_hours')
                 ->get();
         }
 
