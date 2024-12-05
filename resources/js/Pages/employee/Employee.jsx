@@ -4,7 +4,7 @@ import Nav from '@/Layouts/Nav';
 import { Link } from '@inertiajs/react';
 import { FaPlus, FaEdit } from "react-icons/fa";
 import { MdLockClock } from "react-icons/md";
-import { CiEdit } from "react-icons/ci";
+import { CiEdit, CiImageOn } from "react-icons/ci";
 import { RiDeleteBinLine } from "react-icons/ri";
 import axios from 'axios';
 import { MdAssignmentTurnedIn } from "react-icons/md";
@@ -85,7 +85,7 @@ const Employee = ({ user, employee, user_type, notif }) => {
                 <table className="table w-full p-4 border">
                     <thead className='border bg-[#0A1B3F] text-white'>
                         <tr>
-                            <th className='p-3 text-left border'>Employee ID</th>
+                            {/* <th className='p-3 text-left border'>Employee ID</th> */}
                             <th className='p-3 text-left border'>Name</th>
                             <th className='p-3 text-left border'>Email</th>
                             <th className='p-3 text-left border'>Branch</th>
@@ -101,11 +101,11 @@ const Employee = ({ user, employee, user_type, notif }) => {
                         {currentEmployees.length > 0 ? (
                             currentEmployees.map(emp => (
                                 <tr key={emp.id}>
-                                      <td className='p-3 border'>
+                                      {/* <td className='p-3 border'>
                                         {emp.employees.map(empDetail => (
                                             <div key={empDetail.id}>{empDetail.employee_id}</div>
                                         ))}
-                                    </td>
+                                    </td> */}
                                     <td className='p-3 border'>{emp.name}</td>
                                     <td className='p-3 border'>{emp.email}</td>
                                     {/* <td className='p-3 border'>
@@ -135,6 +135,9 @@ const Employee = ({ user, employee, user_type, notif }) => {
                                     </td> */}
                                     <td className='border'>
                                         <div className='flex justify-center space-x-3'>
+                                            <Link className='text-white text-[1.1rem] bg-[#0C7785] p-1 rounded-md' href={`employees-screenshot/${emp.id}`}>
+                                                <CiImageOn />
+                                            </Link>
                                             <Link className='text-white text-[1.1rem] bg-[#0C7785] p-1 rounded-md' href={`employees-edit/${emp.id}`}>
                                                 <CiEdit />
                                             </Link>

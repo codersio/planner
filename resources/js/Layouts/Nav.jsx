@@ -20,7 +20,7 @@ import { FaFolderClosed } from "react-icons/fa6";
 const Nav = ({ user_type, usrrr }) => {
     const [permissions, setPermissions] = useState([]);
     const [toggle, SetToggle] = useState(true);
-    const { props,url } = usePage();
+    const { props, url } = usePage();
 
     useEffect(() => {
         if (Array.isArray(user_type)) {
@@ -85,7 +85,7 @@ const Nav = ({ user_type, usrrr }) => {
                         name={"HRMS & Payroll"}
                         items={menuitems}
                     />
-                    
+
                     {/* <li
                         className={
                             url === "/complaint"
@@ -161,34 +161,37 @@ const Nav = ({ user_type, usrrr }) => {
                             },
                         ]}
                     />
-                    {}
-                    <DropdownMenu
-                        icon={<FaFolderClosed />}
-                        name={"Project Management"}
-                        items={[
-                            // {
-                            //     name: "Projects",
-                            //     link: "/projects",
-                            //     perm: "view_project",
-                            // },
-                            {
-                                name: "Timesheet",
-                                link: "/daily-status",
-                                perm: "view_timsheet",
-                            },
-                            {
-                                name: "Projects",
-                                link: "/projects-task",
-                                perm: "view_project",
-                            },
-                            {
-                                name: "Task Calendar",
-                                link: "/taskcalendar",
-                                // perm: "view_task",
-                            },
-                            { name: "Reports", link: "/reports-get" },
-                        ]}
-                    />
+                    { }
+                    {
+                        props.auth.user.roles[0]?.name === "admin" &&
+                        <DropdownMenu
+                            icon={<FaFolderClosed />}
+                            name={"Project Management"}
+                            items={[
+                                // {
+                                //     name: "Projects",
+                                //     link: "/projects",
+                                //     perm: "view_project",
+                                // },
+                                {
+                                    name: "Timesheet",
+                                    link: "/daily-status",
+                                    perm: "view_timsheet",
+                                },
+                                {
+                                    name: "Projects",
+                                    link: "/projects-task",
+                                    perm: "view_project",
+                                },
+                                {
+                                    name: "Task Calendar",
+                                    link: "/taskcalendar",
+                                    // perm: "view_task",
+                                },
+                                { name: "Reports", link: "/reports-get" },
+                            ]}
+                        />
+                    }
                     <DropdownMenu
                         icon={<FaFolderClosed />}
                         name={"User Management"}
