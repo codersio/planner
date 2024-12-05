@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use Carbon\Carbon;
+use App\Models\Entry;
 use App\Models\Employee;
+use App\Models\Location;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -10,14 +13,30 @@ use App\Http\Controllers\Controller;
 
 class AuthController extends Controller
 {
-    public function login()
+    public function login(Request $request)
     {
         $credentials = request(['email', 'password']);
 
-        if (! $token = JWTAuth::attempt($credentials)) {
+        if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $user = JWTAuth::user();
+
+        if ($user) {
+            $lc = new Location();
+            $lc->user_id = $user->id;
+            $lc->latitude = $request->location['lat'];
+            $lc->longitude = $request->location['long'];
+            $lc->address = $request->location['add'];
+            $lc->save();
+
+            Entry::create([
+                'user_id'=>JWTAuth::user()->id,
+                'type'=>'loggedin',
+                'entry_at' => Carbon::now()
+            ]);
+        }
         return $this->respondWithToken($token);
     }
 
@@ -38,6 +57,12 @@ class AuthController extends Controller
      */
     public function logout()
     {
+        Entry::create([
+            'user_id'=>JWTAuth::user()->id,
+            'type'=>'logout',
+            'entry_at'=>Carbon::now()
+        ]);
+
         JWTAuth::logout();
 
         return response()->json(['message' => 'Successfully logged out']);

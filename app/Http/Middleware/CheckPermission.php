@@ -40,6 +40,7 @@ class CheckPermission
         // Define permission mapping based on URI or other request attributes
         $permissionMap = [
             'employees' => 'view_employee',
+            'employees-screenshot/{id}'=>'view_employee',
             'employees-edit/employees' => 'view_employee',
             'employees-create' => 'create_employee',
             'employees-store' => 'create_employee',

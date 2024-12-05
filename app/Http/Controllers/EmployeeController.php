@@ -11,6 +11,7 @@ use App\Models\holidayAssign;
 use App\Models\Timesheet;
 use Illuminate\Http\Request;
 use App\Models\LeaveManagement;
+use App\Models\Screenshot;
 use App\Notifications\TimesheetUnlockedNotification;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
@@ -124,6 +125,12 @@ class EmployeeController extends Controller
 
         // Redirect with a success message
         return redirect()->route('employees')->with('success', 'Employee created successfully.');
+    }
+
+    public function screenshot($id){
+        $imgs = Screenshot::where('user_id',)->get();
+        // \dd(Employee::findOrFail($id)->user_id);
+        return Inertia::render('employee/screenshot',\compact('imgs'));
     }
 
     public function edit($id)

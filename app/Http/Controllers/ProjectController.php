@@ -210,9 +210,13 @@ class ProjectController extends Controller
             ->select('employees.phone', 'employees.address', 'employees.joinning_date', 'users.name', 'users.email', 'users.id')->get();
         // $task = Project::with(['tasks', 'users'])->get();
         $taskcategory = TaskCategory::all();
-        $tasks = Project::with(['tasks.users' => function ($query) {
-            $query->withPivot('employee_hours'); // Ensure employee_time is included in the query
-        }])->get();
+        // if(Auth::user()->hasRole('admin')){
+            $tasks = Project::with(['tasks.users' => function ($query) {
+                $query->withPivot('employee_hours');
+            }])->get();
+        // }else{
+        //     // $tasks = 
+        // }
         //        dd($tasks);
         $projects = Project::all();
         $notif = Auth::user()->notifications;
