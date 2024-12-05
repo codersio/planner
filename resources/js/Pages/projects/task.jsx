@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useForm } from "@inertiajs/inertia-react";
+import { Link, useForm, usePage } from "@inertiajs/react";
 import Header from "@/Layouts/Header";
 import Nav from "@/Layouts/Nav";
 import { FaEdit } from "react-icons/fa";
@@ -36,7 +36,7 @@ const Task = ({
         status: "",
         project_id: projects.length > 0 ? projects[0].id : "",
     });
-
+    const { props } = usePage()
     useEffect(() => {
         const allTasks = tasks.flatMap((project) => project.tasks);
         const filtered = allTasks.filter(
@@ -68,6 +68,7 @@ const Task = ({
             [name]: value,
         }));
     };
+
 
     const handleDelete = (e, id) => {
         e.preventDefault();
@@ -207,6 +208,7 @@ const Task = ({
             );
         }
     };
+
     const normalizedTaskName = data.task_name
         .replace(/\u00A0/g, " ") // Replace non-breaking spaces with regular spaces
         .trim();
@@ -234,9 +236,12 @@ const Task = ({
                         />
                     </div>
                     <div className="flex">
-                        <div className="grid p-2 mt-2 text-black underline rounded-lg place-items-center">
-                            <Link href="task-create">Add New</Link>
-                        </div>
+                        {
+                            props.permission.includes("create_task") &&
+                            <div className="grid p-2 mt-2 text-black underline rounded-lg place-items-center">
+                                <Link href="task-create">Add New</Link>
+                            </div>
+                        }
                         {/* <div className='grid p-2 mt-2 text-black underline rounded-lg place-items-center'>
                             <Link href='task-category'>Add Task type</Link>
                         </div> */}
@@ -256,9 +261,12 @@ const Task = ({
                             <th className="px-4 py-2 border border-gray-300">
                                 End Date
                             </th>
-                            <th className="px-4 py-2 border border-gray-300">
-                                Assigned Users
-                            </th>
+                            {
+                                props.auth.user.roles[0]?.name === 'admin' &&
+                                <th className="px-4 py-2 border border-gray-300">
+                                    Assigned Users
+                                </th>
+                            }
                             <th className="px-4 py-2 border border-gray-300">
                                 Priority
                             </th>
@@ -286,61 +294,75 @@ const Task = ({
                                         <td className="px-4 py-2 border border-gray-300 text-[0.9rem]">
                                             {task.edate}
                                         </td>
-                                        <td className="px-4 py-2 border border-gray-300">
-                                            {task.users.map(
-                                                (user, userIndex) => (
-                                                    <span
-                                                        className="bg-blue-400 text-white text-xs font-medium me-2 px-2.5 py-0.5 rounded-full"
-                                                        key={userIndex}
-                                                    >
-                                                        {user.name} -{" "}
-                                                        {
-                                                            user.pivot
-                                                                .employee_hours
-                                                        }{" "}
-                                                        hours
-                                                        {userIndex <
-                                                            task.users.length -
+                                        {
+                                            props.auth.user.roles[0]?.name === 'admin' &&
+                                            <td className="px-4 py-2 border border-gray-300">
+                                                {task.users.map(
+                                                    (user, userIndex) => (
+                                                        <span
+                                                            className="bg-blue-400 text-white text-xs font-medium me-2 px-2.5 py-0.5 rounded-full"
+                                                            key={userIndex}
+                                                        >
+                                                            {user.name} -{" "}
+                                                            {
+                                                                user.pivot
+                                                                    .employee_hours
+                                                            }{" "}
+                                                            hours
+                                                            {userIndex <
+                                                                task.users.length -
                                                                 1 && ", "}
-                                                    </span>
-                                                )
-                                            )}
-                                        </td>
+                                                        </span>
+                                                    )
+                                                )}
+                                            </td>
+                                        }
                                         <td
-                                            className={`px-4 py-2 font-semibold border border-gray-300 text-[0.9rem] ${
-                                                task.priority === 0
-                                                    ? "text-green-600"
-                                                    : task.priority === 1
+                                            className={`px-4 py-2 font-semibold border border-gray-300 text-[0.9rem] ${task.priority === 0
+                                                ? "text-green-600"
+                                                : task.priority === 1
                                                     ? "text-amber-600"
                                                     : "text-red-500"
-                                            }`}
+                                                }`}
                                         >
                                             {task.priority === 0
                                                 ? "Low"
                                                 : task.priority == 1
-                                                ? "Medium"
-                                                : "High"}
+                                                    ? "Medium"
+                                                    : "High"}
                                         </td>
-                                        <td className="flex px-4 py-2 space-x-2 border border-gray-300">
-                                            <Link
-                                                href={`/task-edit/${task.id}`}
-                                            >
-                                                <FaEdit className="text-blue-500 cursor-pointer hover:text-blue-700" />
-                                            </Link>
-                                            <RiDeleteBinLine
-                                                className="text-red-500 cursor-pointer hover:text-red-700"
-                                                onClick={(e) =>
-                                                    handleDelete(e, task.id)
+                                        <td className="border border-gray-300">
+                                            <div className="flex px-4 py-2 space-x-2 ">
+
+                                                {
+                                                    props.permission.includes('edit_task') &&
+                                                    <Link
+                                                        href={`/task-edit/${task.id}`}
+                                                    >
+                                                        <FaEdit className="text-blue-500 cursor-pointer hover:text-blue-700" />
+                                                    </Link>
                                                 }
-                                            />
-                                            <button
-                                                onClick={() =>
-                                                    handleCopyClick(projectName)
+                                                {
+                                                    props.permission.includes('delete_task') &&
+                                                    <RiDeleteBinLine
+                                                        className="text-red-500 cursor-pointer hover:text-red-700"
+                                                        onClick={(e) =>
+                                                            handleDelete(e, task.id)
+                                                        }
+                                                    />
                                                 }
-                                                className="text-green-500 cursor-pointer hover:text-green-700"
-                                            >
-                                                Copy
-                                            </button>
+                                                {
+                                                    props.permission.includes('edit_task') &&
+                                                    <button
+                                                        onClick={() =>
+                                                            handleCopyClick(projectName)
+                                                        }
+                                                        className="text-green-500 cursor-pointer hover:text-green-700"
+                                                    >
+                                                        Copy
+                                                    </button>
+                                                }
+                                            </div>
                                         </td>
                                     </tr>
                                 );
@@ -359,11 +381,10 @@ const Task = ({
                         <button
                             key={number}
                             onClick={() => setCurrentPage(number)}
-                            className={`px-4 py-2 mx-1 rounded ${
-                                currentPage === number
-                                    ? "bg-blue-500 text-white"
-                                    : "bg-gray-200"
-                            }`}
+                            className={`px-4 py-2 mx-1 rounded ${currentPage === number
+                                ? "bg-blue-500 text-white"
+                                : "bg-gray-200"
+                                }`}
                         >
                             {number}
                         </button>
