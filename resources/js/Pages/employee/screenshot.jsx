@@ -28,8 +28,8 @@ function screenshot({ user, user_type, notif, emp, imgs }) {
             "/bulk/download",
             { images },
             {
-                onSuccess: (e) => {
-                    console.log(e)
+                onSuccess: () => {
+                   console.log("downloaad")
                 },
                 onError: (error) => {
                     console.error("Error during file generation:", error);

@@ -171,9 +171,18 @@ class EmployeeController extends Controller
         }
 
         // Return the URL to the ZIP file
-        $zipUrl = Storage::url($zipFilePath);
+        // $zipUrl = Storage::url($zipFilePath);
 
-        return Storage::download($zipFilePath,$zipFileName);
+        if (Storage::disk('public')->exists($zipFileName)) {
+            $file = Storage::disk('public')->get($zipFilePath);
+            $mimeType = Storage::disk('public')->mimeType($zipFilePath);
+        
+            return response($file, 200)
+                ->header('Content-Type', $mimeType)
+                ->header('Content-Disposition', 'attachment; filename="' . basename($filePath) . '"');
+        } else {
+            return response()->json(['error' => 'File not found'], 404);
+        }
     }
 
 
