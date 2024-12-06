@@ -135,9 +135,9 @@ const Employee = ({ user, employee, user_type, notif }) => {
                                     </td> */}
                                     <td className='border'>
                                         <div className='flex justify-center space-x-3'>
-                                            <Link className='text-white text-[1.1rem] bg-[#0C7785] p-1 rounded-md' href={`employees-screenshot/${emp.id}`}>
+                                            {/* <Link className='text-white text-[1.1rem] bg-[#0C7785] p-1 rounded-md' href={`employees-screenshot/${emp.id}`}>
                                                 <CiImageOn />
-                                            </Link>
+                                            </Link> */}
                                             <Link className='text-white text-[1.1rem] bg-[#0C7785] p-1 rounded-md' href={`employees-edit/${emp.id}`}>
                                                 <CiEdit />
                                             </Link>

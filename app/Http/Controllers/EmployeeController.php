@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use ZipArchive;
 use Carbon\Carbon;
 use App\Models\User;
 use Inertia\Inertia;
-use App\Models\Employee;
 use App\Models\Holiday;
-use App\Models\holidayAssign;
+use App\Models\Employee;
 use App\Models\Timesheet;
-use Illuminate\Http\Request;
-use App\Models\LeaveManagement;
 use App\Models\Screenshot;
-use App\Notifications\TimesheetUnlockedNotification;
+use Illuminate\Http\Request;
+use App\Models\holidayAssign;
+use App\Models\LeaveManagement;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use App\Notifications\TimesheetUnlockedNotification;
 
 class EmployeeController extends Controller
 {
@@ -127,11 +129,53 @@ class EmployeeController extends Controller
         return redirect()->route('employees')->with('success', 'Employee created successfully.');
     }
 
-    public function screenshot($id){
-        $imgs = Screenshot::where('user_id',)->get();
+    public function screenshot()
+    {
+        $imgs = Screenshot::get()->groupBy(function ($item) {
+            return Carbon::parse($item->created_at)->format('Y-m-d');
+        });
+
+        $emp = User::where('id', '!=', '1')->get();
         // \dd(Employee::findOrFail($id)->user_id);
-        return Inertia::render('employee/screenshot',\compact('imgs'));
+        return Inertia::render('employee/screenshot', \compact('emp', 'imgs'));
     }
+
+    public function downloadImages(Request $request)
+    {
+
+        $images = $request->input('images'); // Array of image paths
+        $zipFileName = 'images.zip'; // Name of the resulting ZIP file
+        $zipFilePath = 'public/' . $zipFileName; // Save it in the "public" disk of Storage
+
+        // Create a new ZIP archive
+        $zip = new ZipArchive;
+        $localZipPath = Storage::path($zipFilePath);
+
+        if ($zip->open($localZipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            foreach ($images as $image) {
+                if (isset($image['path'])) {
+                    $filePath = 'public/' . $image['path'];
+
+                    if (Storage::exists($filePath)) {
+                        // Read the file content and add it to the ZIP
+                        $fileContent = Storage::get($filePath);
+
+                        // Add the file to the ZIP
+                        $zip->addFromString(basename($filePath), $fileContent);
+                    }
+                }
+            }
+            $zip->close(); // Close the ZIP file
+        } else {
+            return response()->json(['error' => 'Unable to create ZIP file'], 500);
+        }
+
+        // Return the URL to the ZIP file
+        $zipUrl = Storage::url($zipFilePath);
+
+        return Storage::download($zipFilePath,$zipFileName);
+    }
+
 
     public function edit($id)
     {

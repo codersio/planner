@@ -6,6 +6,7 @@ import {
     FaTasks,
     FaUsers,
     FaTachometerAlt,
+    FaEye,
 } from "react-icons/fa";
 import { GoProjectSymlink } from "react-icons/go";
 import { IoTimeOutline } from "react-icons/io5";
@@ -192,6 +193,13 @@ const Nav = ({ user_type, usrrr }) => {
                             ]}
                         />
                     }
+                    <DropdownMenu
+                        icon={<FaEye/>}
+                        name={"Monitoring"}
+                        items={[
+                            {name:"Employee Screenshot",link:"/screenshot/employee"}
+                        ]}
+                    />
                     <DropdownMenu
                         icon={<FaFolderClosed />}
                         name={"User Management"}
