@@ -6,6 +6,7 @@ use ZipArchive;
 use Carbon\Carbon;
 use App\Models\User;
 use Inertia\Inertia;
+use App\Models\Entry;
 use App\Models\Holiday;
 use App\Models\Employee;
 use App\Models\Timesheet;
@@ -14,10 +15,13 @@ use Illuminate\Http\Request;
 use App\Models\holidayAssign;
 use App\Models\LeaveManagement;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Pagination\LengthAwarePaginator;
 use App\Notifications\TimesheetUnlockedNotification;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmployeeController extends Controller
 {
@@ -129,23 +133,135 @@ class EmployeeController extends Controller
         return redirect()->route('employees')->with('success', 'Employee created successfully.');
     }
 
-    public function screenshot()
+    public function screenshot(Request $request)
     {
-        $imgs = Screenshot::get()->groupBy(function ($item) {
+        $empi = $request->employee_id ?? '';
+        $sd = null;
+        $ed = null;
+        $query = Screenshot::query();
+
+        // Apply filters
+        if ($request->filled('employee_id')) {
+            $query->where('user_id', $request->employee_id);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+            $sd = $request->start_date;
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+            $ed = $request->end_date;
+        }
+
+        $imgs = $query->get()->groupBy(function ($item) {
             return Carbon::parse($item->created_at)->format('Y-m-d');
         });
 
         $emp = User::where('id', '!=', '1')->get();
-        // \dd(Employee::findOrFail($id)->user_id);
-        return Inertia::render('employee/screenshot', \compact('emp', 'imgs'));
+
+        return Inertia::render('employee/screenshot', compact('emp', 'imgs', 'empi', 'sd', 'ed'));
+    }
+
+    public function workhours(Request $request)
+    {
+        $employeeId = $request->input('employee_id');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = Entry::query();
+
+        if ($employeeId) {
+            $query->where('user_id', $employeeId);
+        }
+
+        if ($startDate) {
+            $query->whereDate('entry_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('entry_at', '<=', $endDate);
+        }
+
+        // Group Entries
+        $entries = $query->get()->groupBy(function ($entry) {
+            return $entry->user_id . '_' . Carbon::parse($entry->entry_at)->toDateString();
+        });
+
+        $hoursByUserAndDate = $entries->map(function ($userEntries, $groupKey) {
+            $totalSeconds = 0;
+            $logs = [];
+            $sortedEntries = $userEntries->sortBy('entry_at')->values();
+            [$userId, $date] = explode('_', $groupKey);
+
+            for ($i = 0; $i < $sortedEntries->count(); $i++) {
+                $entry = $sortedEntries[$i];
+
+                $logs[] = [
+                    'type' => $entry->type,
+                    'timestamp' => Carbon::parse($entry->entry_at)
+                ];
+                if (
+                    $entry->type === 'logout' &&
+                    $i > 0 &&
+                    $sortedEntries[$i - 1]->type === 'loggedin'
+                ) {
+                    $logoutTime = Carbon::parse($entry->entry_at);
+                    $loginTime = Carbon::parse($sortedEntries[$i - 1]->entry_at);
+
+                    if ($logoutTime->greaterThan($loginTime)) {
+                        $totalSeconds += $loginTime->diffInSeconds($logoutTime);
+                    } else {
+
+                        Log::warning("Invalid logout-login pair detected", [
+                            'user_id' => $entry->user_id,
+                            'login_time' => $loginTime,
+                            'logout_time' => $logoutTime,
+                        ]);
+                    }
+                }
+            }
+
+            $hours = intdiv($totalSeconds, 3600);
+            $minutes = intdiv($totalSeconds % 3600, 60);
+            $seconds = $totalSeconds % 60;
+
+
+
+            return [
+                'name' => User::findOrFail($userId)->name,
+                'date' => $date,
+                'total_time' => sprintf('%02dh %02dm %02ds', $hours, $minutes, $seconds),
+                'logs' => $logs
+            ];
+        });
+
+
+
+
+        // Get the current page from the request
+        $page = request()->get('page', 1);
+        $perPage = 10;
+
+        // Paginate the results
+        $paginatedData = new LengthAwarePaginator(
+            $hoursByUserAndDate->forPage($page, $perPage),
+            $hoursByUserAndDate->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+        $emp = User::where('id', '!=', '1')->get();
+        return Inertia::render('employee/workhours', ['emp' => $emp, 'hoursByUserAndDate' => $paginatedData, 'empi' => $employeeId ?? '', 'sd' => $startDate ?? '', 'ed' => $endDate ?? '']);
     }
 
     public function downloadImages(Request $request)
     {
-
-        $images = $request->input('images'); // Array of image paths
-        $zipFileName = 'images.zip'; // Name of the resulting ZIP file
-        $zipFilePath = 'public/' . $zipFileName; // Save it in the "public" disk of Storage
+        $images = $request->input('images');
+        
+            $zipFileName = 'screenshot.zip';
+        $zipFilePath = 'public/' . $zipFileName;
 
         // Create a new ZIP archive
         $zip = new ZipArchive;
@@ -157,32 +273,22 @@ class EmployeeController extends Controller
                     $filePath = 'public/' . $image['path'];
 
                     if (Storage::exists($filePath)) {
-                        // Read the file content and add it to the ZIP
                         $fileContent = Storage::get($filePath);
 
-                        // Add the file to the ZIP
                         $zip->addFromString(basename($filePath), $fileContent);
                     }
                 }
             }
-            $zip->close(); // Close the ZIP file
+            $zip->close();
         } else {
             return response()->json(['error' => 'Unable to create ZIP file'], 500);
         }
 
-        // Return the URL to the ZIP file
-        // $zipUrl = Storage::url($zipFilePath);
+        return \redirect()->route('download.file',$zipFileName);
+    }
 
-        if (Storage::disk('public')->exists($zipFileName)) {
-            $file = Storage::disk('public')->get($zipFilePath);
-            $mimeType = Storage::disk('public')->mimeType($zipFilePath);
-        
-            return response($file, 200)
-                ->header('Content-Type', $mimeType)
-                ->header('Content-Disposition', 'attachment; filename="' . basename($filePath) . '"');
-        } else {
-            return response()->json(['error' => 'File not found'], 404);
-        }
+    public function downloadFile($fileName){
+        return Storage::disk('public')->download($fileName);
     }
 
 

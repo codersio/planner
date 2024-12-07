@@ -19,8 +19,8 @@ class CheckPermission
     {
         $requiredPermission = $this->getRequiredPermission($request);
 
-        \Log::info('Checking Permission: ' . $requiredPermission);
-        \Log::info('User Permissions: ' . implode(', ', Auth::user()->getAllPermissions()->pluck('name')->toArray()));
+        // \Log::info('Checking Permission: ' . $requiredPermission);
+        // \Log::info('User Permissions: ' . implode(', ', Auth::user()->getAllPermissions()->pluck('name')->toArray()));
 
         if ($requiredPermission && Auth::user()->hasPermissionTo(trim($requiredPermission))) {
             return $next($request);
@@ -41,6 +41,7 @@ class CheckPermission
         $permissionMap = [
             'employees' => 'view_employee',
             'screenshot/employee'=>'view_employee',
+            'workhours/employee'=>'view_employee',
             'employees-edit/employees' => 'view_employee',
             'employees-create' => 'create_employee',
             'employees-store' => 'create_employee',

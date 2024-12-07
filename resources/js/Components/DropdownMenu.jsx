@@ -30,7 +30,7 @@ export default function DropdownMenu({ icon, name, items, user }) {
           />
         ) : (
           // perms.includes()
-          <Link href={item.link} className='flex items-center text-sm text-gray-600 gap-x-2'>
+          <Link href={item.link} className={`flex items-center text-sm text-gray-600 gap-x-2 ${item.hide ? 'hidden' : ''}`}>
             <RxDotFilled size={14} />
             <span>{item.name}</span>
           </Link>

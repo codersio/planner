@@ -58,12 +58,12 @@ class AuthController extends Controller
     public function logout()
     {
         Entry::create([
-            'user_id'=>JWTAuth::user()->id,
+            'user_id'=>auth('api')->user()->id,
             'type'=>'logout',
             'entry_at'=>Carbon::now()
         ]);
 
-        JWTAuth::logout();
+        auth('api')->logout();
 
         return response()->json(['message' => 'Successfully logged out']);
     }

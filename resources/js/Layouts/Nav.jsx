@@ -178,6 +178,7 @@ const Nav = ({ user_type, usrrr }) => {
                                     name: "Timesheet",
                                     link: "/daily-status",
                                     perm: "view_timsheet",
+                                    hide: props.auth.user.roles[0]?.name === "admin" || false
                                 },
                                 {
                                     name: "Projects",
@@ -197,7 +198,8 @@ const Nav = ({ user_type, usrrr }) => {
                         icon={<FaEye/>}
                         name={"Monitoring"}
                         items={[
-                            {name:"Employee Screenshot",link:"/screenshot/employee"}
+                            {name:"Employee Screenshot",link:"/screenshot/employee"},
+                            {name:"Productive Time",link:"/workhours/employee"}
                         ]}
                     />
                     <DropdownMenu

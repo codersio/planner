@@ -68,6 +68,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/employees-store', [EmployeeController::class, 'store']);
         Route::get('/employees-edit/{id}', [EmployeeController::class, 'edit'])->name('employees-edit');
         Route::get('/screenshot/employee',[EmployeeController::class,'screenshot']);
+        Route::get('/workhours/employee',[EmployeeController::class,'workhours']);
         Route::post('/employees-update/{id}', [EmployeeController::class, 'update']);
         Route::get('/employees-destroy/{id}', [EmployeeController::class, 'destroy']);
         Route::get('/projects', [ProjectController::class, 'index'])->name('projects');
@@ -287,3 +288,4 @@ Route::resource('lead',LeadController::class);
 Route::resource('deal',DealController::class);
 Route::resource('contract',ContractController::class);
 Route::post('/bulk/download',[EmployeeController::class,'downloadImages']);
+Route::get('/download/{fileName}',[EmployeeController::class,'downloadFile'])->name('download.file');

@@ -5,18 +5,20 @@ import Choices from "choices.js";
 import "choices.js/public/assets/styles/choices.min.css";
 import { useRef } from "react";
 import { useEffect } from "react";
-import { FaDownload } from "react-icons/fa";
 import { Inertia } from "@inertiajs/inertia";
-import { usePage,Link } from "@inertiajs/react";
+import { FaList, FaTimes } from "react-icons/fa";
+import Modal from "@/Components/Modal";
 import { useState } from "react";
+import { Link } from "@inertiajs/react";
 
-function screenshot({ user, user_type, notif, emp, imgs, empi, sd, ed }) {
+function screenshot({ user, user_type, notif, emp, hoursByUserAndDate, empi, sd, ed }) {
     const employeeSelectRef = useRef(null);
-    const imgArray = Object.entries(imgs);
+    const [usrLg, setUsrLg] = useState([]);
+    const [modal, setModal] = useState(false);
     const [employee, setEmployee] = useState(empi);
     const [startDate, setStartDate] = useState(sd);
     const [endDate, setEndDate] = useState(ed);
-    console.log(imgArray);
+    const logs = Object.entries(hoursByUserAndDate.data);
     useEffect(() => {
         const employeeChoicesInstance = new Choices(employeeSelectRef.current, {
             removeItemButton: true,
@@ -28,28 +30,58 @@ function screenshot({ user, user_type, notif, emp, imgs, empi, sd, ed }) {
         };
     }, []);
 
-    const handleDownload = (images) => {
-        Inertia.post(
-            "/bulk/download",
-            { images },
-            {
-                onSuccess: () => {
-                    console.log("download");
-                },
-                onError: (error) => {
-                    console.error("Error during file generation:", error);
-                },
-            }
-        );
-    };
-
     const handleFilter = (e) => {
         e.preventDefault();
-        Inertia.get('/screenshot/employee', { employee_id : employee, start_date: startDate, end_date: endDate });
+        Inertia.get('/workhours/employee', { employee_id : employee, start_date: startDate, end_date: endDate });
     };
 
+    function handleLog(e, lgs) {
+        setModal(true)
+        setUsrLg(lgs)
+    }
+
+    function closeLog() {
+        setModal(false)
+        setUsrLg([])
+    }
+
+    const changePage = (page) => {
+        Inertia.get('/workhours/employee', { page }, { preserveState: true });
+    };
     return (
         <div className="w-[83%] h-full absolute right-0 overflow-hidden">
+            <Modal show={modal}>
+                <div className="p-4">
+                    <div className="flex justify-between items-center">
+                        <h1 className="text-lg font-medium">User Logs</h1>
+                        <button onClick={() => closeLog()}><FaTimes /></button>
+                    </div>
+                    <div className="py-3 h-96 overflow-y-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr>
+                                    <th className="py-2 px-3 bg-gray-800 text-white rounded-l">#</th>
+                                    <th className="py-2 px-3 bg-gray-800 text-white">Type</th>
+                                    <th className="py-2 px-3 bg-gray-800 text-white rounded-r">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    usrLg && usrLg.map((lg, i) => (
+                                        <tr>
+                                            <td className="py-2 px-3 text-sm">{i + 1}</td>
+                                            <td className="py-2 px-3 text-sm">
+                                                {lg.type == "loggedin" ? <span className="bg-green-500 text-white px-3 py-1 rounded">Logged In</span> : <span className="bg-red-500 text-white px-3 py-1 rounded">Logged Out</span>}
+                                            </td>
+                                            <td className="py-2 px-3 text-sm">{new Date(lg.timestamp).toLocaleString()}</td>
+                                        </tr>
+                                    ))
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </Modal>
             <Header user={user} notif={notif} />
             <Nav user_type={user_type} />
             <form onSubmit={handleFilter} className="w-full flex">
@@ -100,7 +132,7 @@ function screenshot({ user, user_type, notif, emp, imgs, empi, sd, ed }) {
                 <div className="w-1/4 p-2 pb-5 flex items-end gap-2 justify-start">
                     <Link
                         className="rounded bg-red-500 text-white px-4 py-2 text-sm"
-                        href="/screenshot/employee"
+                        href="/workhours/employee"
                     >
                         Reset
                     </Link>
@@ -120,28 +152,45 @@ function screenshot({ user, user_type, notif, emp, imgs, empi, sd, ed }) {
                                 #
                             </th>
                             <th className="py-2 px-4 bg-zinc-700 text-white">
-                                Timestamp
+                                Name
+                            </th>
+                            <th className="py-2 px-4 bg-zinc-700 text-white">
+                                Date
+                            </th>
+                            <th className="py-2 px-4 bg-zinc-700 text-white">
+                                Total Work Hours
                             </th>
                             <th className="py-2 px-4 bg-zinc-700 text-white rounded-r">
-                                Action
+                                Log Entry
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {Array.isArray(imgArray) &&
-                            imgArray.map((im, i) => (
+                        {Array.isArray(logs) &&
+                            logs.map((lg, i) => (
                                 <tr>
                                     <td className="px-4 py-2 text-sm">
                                         {i + 1}
                                     </td>
                                     <td className="px-4 py-2 text-sm">
-                                        {new Date(im[0]).toDateString()}
+                                        {lg[1]['name']}
                                     </td>
                                     <td className="px-4 py-2 text-sm">
+                                        {new Date(lg[1]['date']).toDateString()}
+                                    </td>
+                                    <td className="px-4 py-2 text-sm">
+                                        {lg[1]['total_time']}
+                                    </td>
+                                    <td>
+                                        <button onClick={(e) => handleLog(e, lg[1]['logs'])} className="bg-emerald-500 text-white px-2 py-1 rounded">
+                                            <FaList />
+                                        </button>
+                                    </td>
+                                    {/* <td className="px-4 py-2 text-sm">
                                         <div>
                                             <button
                                                 onClick={(e) =>
-                                                    handleDownload(im[1])
+                                                    handleDownload(lg[1])
                                                 }
                                                 className="flex items-center gap-1 bg-blue-500 text-white px-5 py-1 rounded-full"
                                             >
@@ -149,11 +198,27 @@ function screenshot({ user, user_type, notif, emp, imgs, empi, sd, ed }) {
                                                 <span>Download</span>
                                             </button>
                                         </div>
-                                    </td>
+                                    </td> */}
                                 </tr>
-                            ))}
+                            ))
+                        }
                     </tbody>
                 </table>
+            </div>
+            <div className="pagination space-x-1 flex justify-center py-4">
+                <button className="bg-blue-500 px-3 text-sm py-1 rounded text-white disabled:bg-gray-400"
+                    disabled={!hoursByUserAndDate.prev_page_url}
+                    onClick={() => changePage(hoursByUserAndDate.current_page - 1)}
+                >
+                    Prev
+                </button>
+                <span className="px-4">{hoursByUserAndDate.current_page + " / " + hoursByUserAndDate.last_page}</span>
+                <button className="bg-blue-500 px-3 text-sm py-1 rounded text-white disabled:bg-gray-400"
+                    disabled={!hoursByUserAndDate.next_page_url}
+                    onClick={() => changePage(hoursByUserAndDate.current_page + 1)}
+                >
+                    Next
+                </button>
             </div>
         </div>
     );
