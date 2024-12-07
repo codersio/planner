@@ -158,7 +158,7 @@ function screenshot({ user, user_type, notif, emp, hoursByUserAndDate, empi, sd,
                                 Date
                             </th>
                             <th className="py-2 px-4 bg-zinc-700 text-white">
-                                Total Work Hours
+                                Productive Time
                             </th>
                             <th className="py-2 px-4 bg-zinc-700 text-white rounded-r">
                                 Log Entry
